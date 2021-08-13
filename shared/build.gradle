@@ -1,0 +1,15 @@
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+eclipse.project.name = appName + '-shared'
+
+dependencies {
+    // User deps
+    compileOnlyApi 'org.projectlombok:lombok:1.18.20'
+    annotationProcessor 'org.projectlombok:lombok:1.18.20'
+    compileOnlyApi 'org.jetbrains:annotations:22.0.0'
+
+    api('com.google.guava:guava:30.1.1-jre') {
+        exclude group: 'com.google.code.findbugs', module: 'jsr305'
+    }
+    api 'org.apache.commons:commons-lang3:3.12.0'
+    api 'org.mongodb:bson:4.3.1'
+}
