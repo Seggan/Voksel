@@ -27,6 +27,9 @@ public class ServerLauncher {
         System.out.println(new String(packer.toByteArray()));
         Block unp = Block.unpack(MessagePack.newDefaultUnpacker(packer.toByteArray()));
         System.out.println(unp);
+        if (!b.chunk().world().uuid().equals(unp.chunk().world().uuid())) {
+            throw new AssertionError();
+        }
         /*ServerSocket server = new ServerSocket(16255);
         while (!server.isClosed()) {
             Socket socket = server.accept();

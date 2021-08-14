@@ -67,7 +67,11 @@ public final class Chunk {
         packer.packString(world.uuid().toString());
         for (Block[] arr : blocks) {
             for (Block b : arr) {
-                b.pack(packer);
+                if (b == null) {
+                    packer.packNil();
+                } else {
+                    b.pack(packer);
+                }
             }
         }
     }
