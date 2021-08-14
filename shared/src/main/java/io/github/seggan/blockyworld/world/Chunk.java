@@ -8,21 +8,27 @@ import io.github.seggan.blockyworld.world.block.Material;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.msgpack.core.MessageBufferPacker;
+import org.msgpack.core.MessageUnpacker;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Synchronized;
 
 import java.io.IOException;
+import java.util.UUID;
 
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter(onMethod_ = @Synchronized)
 public final class Chunk {
 
-    private final Block[][] blocks = new Block[MagicNumbers.CHUNK_WIDTH][MagicNumbers.CHUNK_HEIGHT];
+    private final Block[][] blocks;
     private final int position;
     private final World world;
 
     public Chunk(int position, World world) {
+        blocks = new Block[MagicNumbers.CHUNK_WIDTH][MagicNumbers.CHUNK_HEIGHT];
         this.position = position;
         this.world = world;
     }
@@ -30,13 +36,13 @@ public final class Chunk {
     public synchronized void setBlock(@NonNull Material material, int x, int y, @Nullable BlockData data) {
         if (x >= 0 && x < MagicNumbers.CHUNK_WIDTH && y >= 0 && y < MagicNumbers.CHUNK_HEIGHT) {
             blocks[x][y] = new Block(material, x, y, this, data);
+        } else {
+            throw new IndexOutOfBoundsException(String.format(
+                "Chunk index out of bounds: %d, %d",
+                x,
+                y
+            ));
         }
-
-        throw new IndexOutOfBoundsException(String.format(
-            "Chunk index out of bounds: %d, %d",
-            x,
-            y
-        ));
     }
 
     @NotNull
@@ -64,16 +70,49 @@ public final class Chunk {
 
     public void pack(@NonNull MessageBufferPacker packer) throws IOException {
         packer.packInt(position);
-        packer.packString(world.uuid().toString());
+        UUID uuid = world.uuid();
+        packer.packLong(uuid.getMostSignificantBits());
+        packer.packLong(uuid.getLeastSignificantBits());
         for (Block[] arr : blocks) {
             for (Block b : arr) {
-                if (b == null) {
+                if (b == null || b.material() == Material.AIR) {
                     packer.packNil();
                 } else {
-                    b.pack(packer);
+                    // Reason I'm doing this instead of Block#pack is because I don't need
+                    // to pack duplicate UUIDs/chunk positions, reducing size
+                    packer.packShort(b.position().compressShort());
+                    packer.packString(b.material().name());
+                    BlockData data = b.blockData();
+                    if (data == null) {
+                        packer.packNil();
+                    } else {
+                        data.pack(packer);
+                    }
                 }
             }
         }
+    }
+
+    public static Chunk unpack(@NonNull MessageUnpacker unpacker) throws IOException {
+        int cPos = unpacker.unpackInt();
+        World world = World.getByUUID(new UUID(unpacker.unpackLong(), unpacker.unpackLong()));
+        Chunk chunk = new Chunk(cPos, world);
+
+        for (int x = 0; x < MagicNumbers.CHUNK_WIDTH; x++) {
+            for (int y = 0; y < MagicNumbers.CHUNK_HEIGHT; y++) {
+                if (!unpacker.tryUnpackNil()) {
+                    Position pos = Position.decompressShort(unpacker.unpackShort());
+                    Material material = Material.valueOf(unpacker.unpackString());
+                    BlockData data = null;
+                    if (!unpacker.tryUnpackNil()) {
+                        data = BlockData.unpack(unpacker);
+                    }
+                    chunk.setBlock(material, pos, data);
+                }
+            }
+        }
+
+        return chunk;
     }
 
     @Override

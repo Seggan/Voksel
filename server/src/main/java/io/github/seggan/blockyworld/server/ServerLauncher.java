@@ -2,7 +2,6 @@ package io.github.seggan.blockyworld.server;
 
 import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.World;
-import io.github.seggan.blockyworld.world.block.Block;
 import io.github.seggan.blockyworld.world.block.Material;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
@@ -21,13 +20,14 @@ public class ServerLauncher {
     public static final Map<InetAddress, ClientSendThread> SENDING_THREADS = new HashMap<>();
 
     public static void main(String[] args) throws IOException {
-        Block b = new Block(Material.STONE, 1, 12, new Chunk(123, new World("world")));
+        Chunk chunk = new Chunk(1, new World("hi"));
+        chunk.setBlock(Material.STONE, 0, 0, null);
         MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
-        b.pack(packer);
+        chunk.pack(packer);
         System.out.println(new String(packer.toByteArray()));
-        Block unp = Block.unpack(MessagePack.newDefaultUnpacker(packer.toByteArray()));
+        Chunk unp = Chunk.unpack(MessagePack.newDefaultUnpacker(packer.toByteArray()));
         System.out.println(unp);
-        if (!b.chunk().world().uuid().equals(unp.chunk().world().uuid())) {
+        if (!chunk.world().uuid().equals(chunk.world().uuid())) {
             throw new AssertionError();
         }
         /*ServerSocket server = new ServerSocket(16255);
