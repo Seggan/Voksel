@@ -1,20 +1,16 @@
 package io.github.seggan.blockyworld.world.block;
 
-import io.github.seggan.blockyworld.BsonSerializable;
-import org.bson.BsonDocument;
-import org.bson.BsonValue;
+import org.msgpack.core.MessageBufferPacker;
+import org.msgpack.core.MessageUnpacker;
 
 import lombok.NonNull;
 
-public class BlockData implements BsonSerializable {
+public class BlockData {
 
-    @Override
-    public BsonDocument toBson() {
-        return null;
+    public static BlockData unpack(@NonNull MessageUnpacker unpacker) {
+        return new BlockData();
     }
 
-    public static BlockData fromBson(@NonNull BsonValue value) {
-        if (!(value instanceof BsonDocument document)) return null;
-        return new BlockData();
+    public void pack(@NonNull MessageBufferPacker packer) {
     }
 }

@@ -8,16 +8,16 @@ public record Position(int x, int y) {
         return new Position((int) (compressed >> 32), (int) compressed);
     }
 
-    public static Position decompressShort(int compressed) {
-        return new Position((short) (compressed >> 16), (short) compressed);
+    public static Position decompressShort(short compressed) {
+        return new Position((byte) (compressed >> 8), (byte) compressed);
     }
 
     public long compress() {
         return (long) x << 32 | y & 0xFFFFFFFFL;
     }
 
-    public int compressShort() {
-        return (x << 16) | (y & 0xFFFF);
+    public short compressShort() {
+        return (short) ((x << 8) | (y & 0xFF));
     }
 
     public int distanceSquared(@NonNull Position other) {

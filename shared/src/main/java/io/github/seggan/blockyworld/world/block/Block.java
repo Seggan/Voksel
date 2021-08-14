@@ -1,25 +1,28 @@
 package io.github.seggan.blockyworld.world.block;
 
-import io.github.seggan.blockyworld.BsonSerializable;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.World;
-import org.bson.BsonBinary;
-import org.bson.BsonDocument;
-import org.bson.BsonInt32;
-import org.bson.BsonNull;
-import org.bson.BsonString;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.msgpack.core.MessageBufferPacker;
+import org.msgpack.core.MessageUnpacker;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.Synchronized;
+import lombok.ToString;
 
+import java.io.IOException;
+import java.util.UUID;
+
+@ToString
+@EqualsAndHashCode
 @Getter(onMethod_ = @Synchronized)
 @Setter(onMethod_ = @Synchronized)
-public class Block implements BsonSerializable {
+public class Block {
 
     private final Position position;
     private final Chunk chunk;
@@ -45,26 +48,27 @@ public class Block implements BsonSerializable {
     }
 
     @NotNull
-    public static Block fromBson(@NonNull BsonDocument document) {
-        Position pos = Position.decompressShort(document.getInt32("p").getValue());
-        Material material = Material.valueOf(document.getString("m").getValue());
-        World world = World.getByUUID(document.getBinary("w").asUuid());
-        Chunk chunk = new Chunk(document.getInt32("c").getValue(), world);
-        return new Block(material, pos, chunk, BlockData.fromBson(document.get("d")));
+    public static Block unpack(@NonNull MessageUnpacker unpacker) throws IOException {
+        Position pos = Position.decompressShort(unpacker.unpackShort());
+        Material mat = Material.valueOf(unpacker.unpackString());
+        World world = World.getByUUID(UUID.fromString(unpacker.unpackString()));
+        Chunk chunk = new Chunk(unpacker.unpackInt(), world);
+        BlockData data = null;
+        if (!unpacker.tryUnpackNil()) {
+            data = BlockData.unpack(unpacker);
+        }
+        return new Block(mat, pos, chunk, data);
     }
 
-    @Override
-    public BsonDocument toBson() {
-        BsonDocument object = new BsonDocument();
-        object.put("p", new BsonInt32(position.compressShort())); // position
-        object.put("m", new BsonString(material.name())); // material
-        object.put("c", new BsonInt32(chunk.position())); // chunk
-        object.put("w", new BsonBinary(chunk.world().uuid())); // world
+    public void pack(@NonNull MessageBufferPacker packer) throws IOException {
+        packer.packShort(position.compressShort());
+        packer.packString(material.name());
+        packer.packString(chunk.world().uuid().toString());
+        packer.packInt(chunk.position());
         if (blockData == null) {
-            object.put("d", new BsonNull()); // data
+            packer.packNil();
         } else {
-            object.put("d", blockData.toBson()); // data
+            blockData.pack(packer);
         }
-        return object;
     }
 }

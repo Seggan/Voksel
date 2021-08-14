@@ -1,24 +1,22 @@
 package io.github.seggan.blockyworld.world;
 
-import io.github.seggan.blockyworld.BsonSerializable;
 import io.github.seggan.blockyworld.util.MagicNumbers;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.world.block.Block;
 import io.github.seggan.blockyworld.world.block.BlockData;
 import io.github.seggan.blockyworld.world.block.Material;
-import org.bson.BsonArray;
-import org.bson.BsonDocument;
-import org.bson.BsonInt32;
-import org.bson.BsonNull;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.msgpack.core.MessageBufferPacker;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Synchronized;
 
+import java.io.IOException;
+
 @Getter(onMethod_ = @Synchronized)
-public final class Chunk implements BsonSerializable {
+public final class Chunk {
 
     private final Block[][] blocks = new Block[MagicNumbers.CHUNK_WIDTH][MagicNumbers.CHUNK_HEIGHT];
     private final int position;
@@ -64,24 +62,14 @@ public final class Chunk implements BsonSerializable {
         return getBlock(position.x(), position.y());
     }
 
-    @Override
-    public BsonDocument toBson() {
-        BsonDocument document = new BsonDocument();
-        document.put("p", new BsonInt32(position)); // position
-
-        BsonArray array = new BsonArray();
+    public void pack(@NonNull MessageBufferPacker packer) throws IOException {
+        packer.packInt(position);
+        packer.packString(world.uuid().toString());
         for (Block[] arr : blocks) {
             for (Block b : arr) {
-                if (b == null) {
-                    array.add(new BsonNull());
-                } else {
-                    array.add(b.toBson());
-                }
+                b.pack(packer);
             }
         }
-        document.put("b", array); // blocks
-
-        return document;
     }
 
     @Override

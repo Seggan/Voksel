@@ -1,13 +1,8 @@
 package io.github.seggan.blockyworld.world;
 
-import io.github.seggan.blockyworld.BsonSerializable;
 import io.github.seggan.blockyworld.util.NumberUtil;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.world.block.Block;
-import org.bson.BsonArray;
-import org.bson.BsonBinary;
-import org.bson.BsonDocument;
-import org.bson.BsonString;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,7 +17,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @ToString
-public final class World implements BsonSerializable {
+public final class World {
 
     private static final Map<UUID, World> worlds = new ConcurrentHashMap<>();
 
@@ -66,20 +61,5 @@ public final class World implements BsonSerializable {
     @NotNull
     public synchronized Block getBlockAt(int x, int y) {
         return getBlockAt(new Position(x, y));
-    }
-
-    @Override
-    public BsonDocument toBson() {
-        BsonDocument document = new BsonDocument();
-        document.put("n", new BsonString(name)); // name
-        document.put("i", new BsonBinary(uuid)); // id
-
-        BsonArray array = new BsonArray();
-        for (Chunk chunk : chunks.values()) {
-            array.add(chunk.toBson());
-        }
-        document.put("c", array); // chunks
-
-        return document;
     }
 }
