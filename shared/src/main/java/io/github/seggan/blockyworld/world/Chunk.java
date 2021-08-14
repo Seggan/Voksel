@@ -10,8 +10,6 @@ import org.jetbrains.annotations.Nullable;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessageUnpacker;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Synchronized;
@@ -19,7 +17,6 @@ import lombok.Synchronized;
 import java.io.IOException;
 import java.util.UUID;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter(onMethod_ = @Synchronized)
 public final class Chunk {
 
@@ -28,7 +25,7 @@ public final class Chunk {
     private final World world;
 
     public Chunk(int position, World world) {
-        blocks = new Block[MagicNumbers.CHUNK_WIDTH][MagicNumbers.CHUNK_HEIGHT];
+        this.blocks = new Block[MagicNumbers.CHUNK_WIDTH][MagicNumbers.CHUNK_HEIGHT];
         this.position = position;
         this.world = world;
     }
