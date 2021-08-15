@@ -2,15 +2,19 @@ package io.github.seggan.blockyworld.world;
 
 import io.github.seggan.blockyworld.util.NumberUtil;
 import io.github.seggan.blockyworld.util.Position;
+import io.github.seggan.blockyworld.util.SerialUtil;
 import io.github.seggan.blockyworld.world.block.Block;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.msgpack.core.MessageBufferPacker;
+import org.msgpack.core.MessageUnpacker;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
@@ -61,5 +65,14 @@ public final class World {
     @NotNull
     public synchronized Block getBlockAt(int x, int y) {
         return getBlockAt(new Position(x, y));
+    }
+
+    public void pack(@NonNull MessageBufferPacker packer) throws IOException {
+        packer.packString(name);
+        SerialUtil.packUUID(packer, uuid);
+    }
+
+    public static World unpack(@NonNull MessageUnpacker unpacker) throws IOException {
+        return new World(SerialUtil.unpackUUID(unpacker), unpacker.unpackString());
     }
 }

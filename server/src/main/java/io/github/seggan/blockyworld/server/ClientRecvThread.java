@@ -32,8 +32,8 @@ public class ClientRecvThread extends Thread {
             short code = buffer.getShort();
             int length = buffer.getInt();
             byte[] body = in.readNBytes(length);
-            Request request = RequestType.getByCode(code).unpack(MessagePack.newDefaultUnpacker(body));
-            Server.requestProcessor().addRequest(request);
+            Request request = RequestType.getByCode(code).unpack(MessagePack.newDefaultUnpacker(body), false, client.getInetAddress());
+            Server.mainThread().addRequest(request);
         }
     }
 }

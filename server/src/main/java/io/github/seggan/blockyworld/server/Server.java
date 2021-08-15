@@ -1,6 +1,6 @@
 package io.github.seggan.blockyworld.server;
 
-import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.Nullable;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -22,11 +22,12 @@ public class Server {
     public static final Map<InetAddress, ClientSendThread> SENDING_THREADS = new HashMap<>();
 
     @Getter
-    private static final RequestProcessor requestProcessor = new RequestProcessor();
+    private static MainThread mainThread;
 
     public static void main(String[] args) throws IOException {
-        requestProcessor.start();
         ServerSocket server = new ServerSocket(16255);
+        mainThread = new MainThread(server.getInetAddress());
+        mainThread.start();
         while (!server.isClosed()) {
             Socket socket = server.accept();
             InetAddress address = socket.getInetAddress();
@@ -40,12 +41,14 @@ public class Server {
     }
 
     @SneakyThrows(IOException.class)
-    public void send(@NonNull Request request) {
-        RequestType type = request.type();
-        Validate.isTrue(type.toClient(), "Request type %s is not to client!", type.name());
+    public static void send(@NonNull Request request, @Nullable InetAddress sendTo) {
         byte[] bytes = request.serialize();
-        for (ClientSendThread thread : SENDING_THREADS.values()) {
-            thread.send(bytes);
+        if (sendTo == null) {
+            for (ClientSendThread thread : SENDING_THREADS.values()) {
+                thread.send(bytes);
+            }
+        } else {
+            SENDING_THREADS.get(sendTo).send(bytes);
         }
     }
 }

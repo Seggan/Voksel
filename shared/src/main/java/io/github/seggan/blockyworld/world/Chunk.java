@@ -2,6 +2,7 @@ package io.github.seggan.blockyworld.world;
 
 import io.github.seggan.blockyworld.util.MagicNumbers;
 import io.github.seggan.blockyworld.util.Position;
+import io.github.seggan.blockyworld.util.SerialUtil;
 import io.github.seggan.blockyworld.world.block.Block;
 import io.github.seggan.blockyworld.world.block.BlockData;
 import io.github.seggan.blockyworld.world.block.Material;
@@ -10,16 +11,17 @@ import org.jetbrains.annotations.Nullable;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessageUnpacker;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Synchronized;
 
 import java.io.IOException;
-import java.util.UUID;
 
 @Getter(onMethod_ = @Synchronized)
 public final class Chunk {
 
+    @Getter(AccessLevel.NONE)
     private final Block[][] blocks;
     private final int position;
     private final World world;
@@ -28,6 +30,8 @@ public final class Chunk {
         this.blocks = new Block[MagicNumbers.CHUNK_WIDTH][MagicNumbers.CHUNK_HEIGHT];
         this.position = position;
         this.world = world;
+        ChunkGenerator generator = new ChunkGenerator(this);
+        generator.generateChunk(this.blocks);
     }
 
     public synchronized void setBlock(@NonNull Material material, int x, int y, @Nullable BlockData data) {
@@ -67,9 +71,7 @@ public final class Chunk {
 
     public void pack(@NonNull MessageBufferPacker packer) throws IOException {
         packer.packInt(position);
-        UUID uuid = world.uuid();
-        packer.packLong(uuid.getMostSignificantBits());
-        packer.packLong(uuid.getLeastSignificantBits());
+        SerialUtil.packUUID(packer, world.uuid());
         for (Block[] arr : blocks) {
             for (Block b : arr) {
                 if (b == null || b.material() == Material.AIR) {
@@ -92,7 +94,7 @@ public final class Chunk {
 
     public static Chunk unpack(@NonNull MessageUnpacker unpacker) throws IOException {
         int cPos = unpacker.unpackInt();
-        World world = World.getByUUID(new UUID(unpacker.unpackLong(), unpacker.unpackLong()));
+        World world = World.getByUUID(SerialUtil.unpackUUID(unpacker));
         Chunk chunk = new Chunk(cPos, world);
 
         for (int x = 0; x < MagicNumbers.CHUNK_WIDTH; x++) {

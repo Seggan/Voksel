@@ -1,6 +1,7 @@
 package io.github.seggan.blockyworld.world.block;
 
 import io.github.seggan.blockyworld.util.Position;
+import io.github.seggan.blockyworld.util.SerialUtil;
 import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.World;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +17,6 @@ import lombok.Synchronized;
 import lombok.ToString;
 
 import java.io.IOException;
-import java.util.UUID;
 
 @ToString
 @EqualsAndHashCode
@@ -51,8 +51,8 @@ public class Block {
     public static Block unpack(@NonNull MessageUnpacker unpacker) throws IOException {
         Position pos = Position.decompressShort(unpacker.unpackShort());
         Material mat = Material.valueOf(unpacker.unpackString());
-        World world = World.getByUUID(new UUID(unpacker.unpackLong(), unpacker.unpackLong()));
-        Chunk chunk = new Chunk(unpacker.unpackInt(), world);
+        World world = World.getByUUID(SerialUtil.unpackUUID(unpacker));
+        Chunk chunk = world.getChunk(unpacker.unpackInt());
         BlockData data = null;
         if (!unpacker.tryUnpackNil()) {
             data = BlockData.unpack(unpacker);
@@ -63,9 +63,7 @@ public class Block {
     public void pack(@NonNull MessageBufferPacker packer) throws IOException {
         packer.packShort(position.compressShort());
         packer.packString(material.name());
-        UUID uuid = chunk.world().uuid();
-        packer.packLong(uuid.getMostSignificantBits());
-        packer.packLong(uuid.getLeastSignificantBits());
+        SerialUtil.packUUID(packer, chunk.world().uuid());
         packer.packInt(chunk.position());
         if (blockData == null) {
             packer.packNil();

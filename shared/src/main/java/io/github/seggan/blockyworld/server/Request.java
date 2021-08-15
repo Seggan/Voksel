@@ -8,15 +8,25 @@ import lombok.Getter;
 import lombok.NonNull;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 
 @Getter
 public abstract class Request {
 
     private final RequestType type;
+    private final boolean server;
+    private final InetAddress address;
 
-    protected Request(RequestType type) {
+    /**
+     * @param type the type of the request
+     * @param server if the creator of the request is the server
+     * @param address the address of the creator of the request
+     */
+    protected Request(@NonNull RequestType type, boolean server, InetAddress address) {
         this.type = type;
+        this.server = server;
+        this.address = address;
     }
 
     public byte[] serialize() throws IOException {
