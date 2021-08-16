@@ -9,31 +9,30 @@ import java.io.InputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 
-public class ClientRecvThread extends Thread {
+public class ClientRecvThread extends ClientThread {
 
     private static final int HEADER_SIZE = Short.BYTES + Integer.BYTES; // 6
 
-    private final Socket client;
-
     public ClientRecvThread(Socket client) {
-        super();
-        setDaemon(true);
-        this.client = client;
+        super(client);
     }
 
     @Override
     @SneakyThrows(IOException.class)
     public void run() {
         InputStream in = client.getInputStream();
-        //noinspection InfiniteLoopStatement
-        while (true) {
+        while (!client.isInputShutdown()) {
             byte[] header = in.readNBytes(HEADER_SIZE);
-            ByteBuffer buffer = ByteBuffer.allocate(HEADER_SIZE).put(header);
+            if (header.length == 0) break;
+            ByteBuffer buffer = ByteBuffer.wrap(header);
             short code = buffer.getShort();
+            if (code == 4) {
+                continue;
+            }
             int length = buffer.getInt();
             byte[] body = in.readNBytes(length);
-            Request request = RequestType.getByCode(code).unpack(MessagePack.newDefaultUnpacker(body), false, client.getInetAddress());
-            Server.mainThread().addRequest(request);
+            Packet packet = PacketType.getByCode(code).unpack(MessagePack.newDefaultUnpacker(body), false, client.getInetAddress());
+            Server.mainThread().addRequest(packet);
         }
     }
 }

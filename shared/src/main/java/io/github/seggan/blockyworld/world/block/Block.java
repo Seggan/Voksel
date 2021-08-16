@@ -1,9 +1,11 @@
 package io.github.seggan.blockyworld.world.block;
 
+import io.github.seggan.blockyworld.util.MagicNumbers;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.util.SerialUtil;
 import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.World;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.msgpack.core.MessageBufferPacker;
@@ -12,27 +14,29 @@ import org.msgpack.core.MessageUnpacker;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.Synchronized;
 import lombok.ToString;
 
 import java.io.IOException;
 
 @ToString
 @EqualsAndHashCode
-@Getter(onMethod_ = @Synchronized)
-@Setter(onMethod_ = @Synchronized)
 public class Block {
 
+    @Getter
     private final Position position;
+    @Getter
     private final Chunk chunk;
 
     private Material material;
+    private final Object matLock = new Object();
 
     @Nullable
-    private BlockData blockData;
+    private volatile BlockData blockData;
+    private final Object bdLock = new Object();
 
     public Block(@NonNull Material material, @NonNull Position position, @NonNull Chunk chunk, @Nullable BlockData data) {
+        Validate.exclusiveBetween(-1, MagicNumbers.CHUNK_WIDTH, position.x());
+        Validate.exclusiveBetween(-1, MagicNumbers.CHUNK_HEIGHT, position.y());
         this.material = material;
         this.position = position;
         this.chunk = chunk;
@@ -70,5 +74,30 @@ public class Block {
         } else {
             blockData.pack(packer);
         }
+    }
+
+    public Material material() {
+        return this.material;
+    }
+
+    @Nullable
+    public BlockData blockData() {
+        synchronized (bdLock) {
+            return blockData;
+        }
+    }
+
+    public Block material(Material material) {
+        synchronized (matLock) {
+            this.material = material;
+        }
+        return this;
+    }
+
+    public Block blockData(@Nullable BlockData blockData) {
+        synchronized (bdLock) {
+            this.blockData = blockData;
+        }
+        return this;
     }
 }

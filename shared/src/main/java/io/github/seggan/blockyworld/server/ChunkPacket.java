@@ -12,21 +12,21 @@ import java.io.IOException;
 import java.net.InetAddress;
 
 @Getter
-public final class ChunkRequest extends Request {
+public final class ChunkPacket extends Packet {
 
     private final Chunk chunk;
     private final int position;
     private final World world;
 
-    public ChunkRequest(@NonNull Chunk chunk, @NonNull InetAddress address) {
-        super(RequestType.REQUEST_CHUNK, true, address);
+    public ChunkPacket(@NonNull Chunk chunk, @NonNull InetAddress address) {
+        super(PacketType.REQUEST_CHUNK, true, address);
         this.chunk = chunk;
         this.position = 0;
         this.world = null;
     }
 
-    public ChunkRequest(int position, @NonNull World world, @NonNull InetAddress address) {
-        super(RequestType.REQUEST_CHUNK, false, address);
+    public ChunkPacket(int position, @NonNull World world, @NonNull InetAddress address) {
+        super(PacketType.REQUEST_CHUNK, false, address);
         this.position = position;
         this.world = world;
         this.chunk = null;

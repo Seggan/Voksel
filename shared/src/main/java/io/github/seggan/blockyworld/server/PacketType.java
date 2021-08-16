@@ -15,15 +15,15 @@ import java.net.InetAddress;
 
 @Getter
 @AllArgsConstructor
-public enum RequestType {
+public enum PacketType {
     REQUEST_CHUNK(0x01) {
         @NotNull
         @Override
-        public Request unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException {
+        public Packet unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException {
             if (server) {
-                return new ChunkRequest(Chunk.unpack(unpacker), address);
+                return new ChunkPacket(Chunk.unpack(unpacker), address);
             } else {
-                return new ChunkRequest(
+                return new ChunkPacket(
                     unpacker.unpackInt(),
                     World.getByUUID(SerialUtil.unpackUUID(unpacker)),
                     address
@@ -34,18 +34,21 @@ public enum RequestType {
     REQUEST_WORLD(0x02) {
         @NotNull
         @Override
-        public Request unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException {
+        public Packet unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException {
             if (server) {
-                return new WorldRequest(World.unpack(unpacker), address);
+                return new WorldPacket(World.unpack(unpacker), address);
             } else {
-                return new WorldRequest(address);
+                return new WorldPacket(address);
             }
         }
     };
+    /*
+        0x03 is reserved for the invalid protocol packet, 0x04 for the OK packet
+     */
 
     private final short code;
 
-    RequestType(int code) {
+    PacketType(int code) {
         this((short) code);
     }
 
@@ -57,11 +60,11 @@ public enum RequestType {
      * @return the unpacked request
      */
     @NotNull
-    public abstract Request unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException;
+    public abstract Packet unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException;
 
     @NotNull
-    public static RequestType getByCode(short code) {
-        for (RequestType type : values()) {
+    public static PacketType getByCode(short code) {
+        for (PacketType type : values()) {
             if (code == type.code) {
                 return type;
             }

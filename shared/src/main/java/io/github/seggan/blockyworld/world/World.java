@@ -4,6 +4,8 @@ import io.github.seggan.blockyworld.util.NumberUtil;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.util.SerialUtil;
 import io.github.seggan.blockyworld.world.block.Block;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +27,7 @@ public final class World {
 
     private static final Map<UUID, World> worlds = new ConcurrentHashMap<>();
 
-    private final Map<Integer, Chunk> chunks = new ConcurrentHashMap<>();
+    private final Int2ObjectMap<Chunk> chunks = new Int2ObjectOpenHashMap<>();
     @Getter
     private final UUID uuid;
     @Getter
@@ -53,17 +55,21 @@ public final class World {
         return worlds.values();
     }
 
-    public synchronized Chunk getChunk(int pos) {
-        return chunks.computeIfAbsent(pos, i -> new Chunk(i, this));
+    public Chunk getChunk(int pos) {
+        synchronized (chunks) {
+            return chunks.computeIfAbsent(pos, i -> new Chunk(i, this));
+        }
     }
 
     @NotNull
-    public synchronized Block getBlockAt(@NonNull Position position) {
-        return chunks.get(NumberUtil.worldToChunk(position.x())).getBlock(NumberUtil.worldToInChunk(position));
+    public Block getBlockAt(@NonNull Position position) {
+        synchronized (chunks) {
+            return chunks.get(NumberUtil.worldToChunk(position.x())).getBlock(NumberUtil.worldToInChunk(position));
+        }
     }
 
     @NotNull
-    public synchronized Block getBlockAt(int x, int y) {
+    public Block getBlockAt(int x, int y) {
         return getBlockAt(new Position(x, y));
     }
 
@@ -73,6 +79,7 @@ public final class World {
     }
 
     public static World unpack(@NonNull MessageUnpacker unpacker) throws IOException {
-        return new World(SerialUtil.unpackUUID(unpacker), unpacker.unpackString());
+        String name = unpacker.unpackString();
+        return new World(SerialUtil.unpackUUID(unpacker), name);
     }
 }

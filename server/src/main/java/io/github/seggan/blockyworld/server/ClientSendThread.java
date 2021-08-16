@@ -7,16 +7,12 @@ import java.net.Socket;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
-public class ClientSendThread extends Thread {
-
-    private final Socket client;
+public class ClientSendThread extends ClientThread {
 
     private final Queue<byte[]> sendQueue = new ConcurrentLinkedDeque<>();
 
     public ClientSendThread(Socket client) {
-        super();
-        setDaemon(true);
-        this.client = client;
+        super(client);
     }
 
     @Override

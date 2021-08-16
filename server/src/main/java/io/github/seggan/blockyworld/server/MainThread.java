@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class MainThread extends Thread {
 
-    private final Queue<Request> pending = new ConcurrentLinkedDeque<>();
+    private final Queue<Packet> pending = new ConcurrentLinkedDeque<>();
 
     private final World world = new World("world");
 
@@ -26,13 +26,13 @@ public class MainThread extends Thread {
     public void run() {
         //noinspection InfiniteLoopStatement
         while (true) {
-            Request request;
-            if ((request = pending.poll()) != null) {
-                if (request instanceof ChunkRequest chunkRequest) {
-                    ChunkRequest back = new ChunkRequest(world.getChunk(chunkRequest.position()), thisAddress);
+            Packet packet;
+            if ((packet = pending.poll()) != null) {
+                if (packet instanceof ChunkPacket chunkRequest) {
+                    ChunkPacket back = new ChunkPacket(world.getChunk(chunkRequest.position()), thisAddress);
                     Server.send(back, chunkRequest.address());
-                } else if (request instanceof WorldRequest worldRequest) {
-                    WorldRequest back = new WorldRequest(world, thisAddress);
+                } else if (packet instanceof WorldPacket worldRequest) {
+                    WorldPacket back = new WorldPacket(world, thisAddress);
                     Server.send(back, worldRequest.address());
                 }
             } else {
@@ -44,7 +44,7 @@ public class MainThread extends Thread {
         }
     }
 
-    public void addRequest(@NonNull Request request) {
-        pending.add(request);
+    public void addRequest(@NonNull Packet packet) {
+        pending.add(packet);
     }
 }

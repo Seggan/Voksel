@@ -11,19 +11,19 @@ import org.jetbrains.annotations.Nullable;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessageUnpacker;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Synchronized;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
-@Getter(onMethod_ = @Synchronized)
 public final class Chunk {
 
-    @Getter(AccessLevel.NONE)
     private final Block[][] blocks;
+    @Getter
     private final int position;
+    @Getter
     private final World world;
 
     public Chunk(int position, World world) {
@@ -34,23 +34,48 @@ public final class Chunk {
         generator.generateChunk(this.blocks);
     }
 
-    public synchronized void setBlock(@NonNull Material material, int x, int y, @Nullable BlockData data) {
-        if (x >= 0 && x < MagicNumbers.CHUNK_WIDTH && y >= 0 && y < MagicNumbers.CHUNK_HEIGHT) {
-            blocks[x][y] = new Block(material, x, y, this, data);
-        } else {
-            throw new IndexOutOfBoundsException(String.format(
-                "Chunk index out of bounds: %d, %d",
-                x,
-                y
-            ));
+    public void setBlock(@NonNull Material material, int x, int y, @Nullable BlockData data) {
+        setBlock(material, new Position(x, y), data);
+    }
+
+    public void setBlock(@NonNull Material material, @NonNull Position position, @Nullable BlockData data) {
+        setBlock(new Block(material, position, this, data));
+    }
+
+    public void setBlock(@NonNull Block block) {
+        Position position = block.position();
+        synchronized (blocks) {
+            blocks[position.x()][position.y()] = block;
         }
     }
 
+    /**
+     * Returns a set of the blocks in the chunk
+     *
+     * @return a set of blocks in the chunk. Air blocks will <b>not</b> be included unless
+     * explicitly set
+     */
+    public Set<Block> blocks() {
+        Set<Block> blockSet = new HashSet<>();
+        synchronized (blocks) {
+            for (Block[] arr : blocks) {
+                for (Block b : arr) {
+                    if (b == null) continue;
+                    blockSet.add(b);
+                }
+            }
+        }
+
+        return blockSet;
+    }
+
     @NotNull
-    public synchronized Block getBlock(int x, int y) {
+    public Block getBlock(int x, int y) {
         if (x >= 0 && x < MagicNumbers.CHUNK_WIDTH && y >= 0 && y < MagicNumbers.CHUNK_HEIGHT) {
-            Block b = blocks[x][y];
-            return b == null ? new Block(Material.AIR, x, y, this, null) : b;
+            synchronized (blocks) {
+                Block b = blocks[x][y];
+                return b == null ? new Block(Material.AIR, x, y, this, null) : b;
+            }
         }
 
         throw new IndexOutOfBoundsException(String.format(
@@ -60,12 +85,8 @@ public final class Chunk {
         ));
     }
 
-    public synchronized void setBlock(@NonNull Material material, @NonNull Position position, @Nullable BlockData data) {
-        setBlock(material, position.x(), position.y(), data);
-    }
-
     @NotNull
-    public synchronized Block getBlock(@NonNull Position position) {
+    public Block getBlock(@NonNull Position position) {
         return getBlock(position.x(), position.y());
     }
 

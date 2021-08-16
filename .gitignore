@@ -65,6 +65,8 @@ nb-configuration.xml
 ## OS Specific
 .DS_Store
 
+log.txt
+
 ## Miscellaneous
 *~
 *.*#

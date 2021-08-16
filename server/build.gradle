@@ -6,6 +6,8 @@ eclipse.project.name = appName + '-server'
 
 dependencies {
 	implementation project(':shared')
+
+	annotationProcessor 'org.projectlombok:lombok:1.18.20'
 }
 
 jar {

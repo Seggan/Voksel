@@ -12,9 +12,11 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 
 @Getter
-public abstract class Request {
+public abstract class Packet {
 
-    private final RequestType type;
+    public static final short PROTOCOL_VERSION = 1;
+
+    private final PacketType type;
     private final boolean server;
     private final InetAddress address;
 
@@ -23,7 +25,7 @@ public abstract class Request {
      * @param server if the creator of the request is the server
      * @param address the address of the creator of the request
      */
-    protected Request(@NonNull RequestType type, boolean server, InetAddress address) {
+    protected Packet(@NonNull PacketType type, boolean server, @NonNull InetAddress address) {
         this.type = type;
         this.server = server;
         this.address = address;
