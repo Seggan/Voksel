@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import io.github.seggan.blockyworld.server.Packet;
 import io.github.seggan.blockyworld.util.MagicNumbers;
 import io.github.seggan.blockyworld.util.Position;
+import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.World;
 
 import lombok.Getter;
@@ -31,6 +32,8 @@ public class BlockyWorld extends ApplicationAdapter {
     private static OrthographicCamera camera;
     private static World world;
     private static Renderer renderer;
+
+    private static Chunk chunk;
 
     public static Position worldToScreen(@NonNull Position position) {
         int x = position.x() * MagicNumbers.WORLD_SCREEN_RATIO + BlockyWorld.SCREEN_OFFSET_X;
@@ -78,7 +81,7 @@ public class BlockyWorld extends ApplicationAdapter {
         connection = new Connection(soc);
 
         world = connection.requestWorld();
-        System.out.println(world);
+        chunk = connection.requestChunk(0, world);
     }
 
     @Override
@@ -89,6 +92,7 @@ public class BlockyWorld extends ApplicationAdapter {
 
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
+        renderer.render(chunk);
         batch.end();
     }
 

@@ -9,8 +9,10 @@ abstract class ClientThread extends Thread {
 
     @Getter
     protected final Socket client;
+    protected boolean stop;
 
-    protected ClientThread(@NonNull Socket client) {
+    protected ClientThread(@NonNull Socket client, @NonNull String name) {
+        super(name);
         this.client = client;
         setDaemon(true);
     }
@@ -18,5 +20,9 @@ abstract class ClientThread extends Thread {
     @Override
     public void run() {
         super.run();
+    }
+
+    public void stopThread() {
+        stop = true;
     }
 }

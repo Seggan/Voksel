@@ -12,14 +12,13 @@ public class ClientSendThread extends ClientThread {
     private final Queue<byte[]> sendQueue = new ConcurrentLinkedDeque<>();
 
     public ClientSendThread(Socket client) {
-        super(client);
+        super(client, "Sending thread for " + client.getInetAddress().getHostAddress());
     }
 
     @Override
     @SneakyThrows(IOException.class)
     public void run() {
-        //noinspection InfiniteLoopStatement
-        while (true) {
+        while (!client.isClosed() && !stop) {
             byte[] bytes;
             if ((bytes = sendQueue.poll()) != null) {
                 client.getOutputStream().write(bytes);

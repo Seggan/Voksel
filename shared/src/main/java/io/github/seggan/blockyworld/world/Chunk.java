@@ -26,7 +26,7 @@ public final class Chunk {
     @Getter
     private final World world;
 
-    public Chunk(int position, World world) {
+    public Chunk(int position, @NonNull World world) {
         this.blocks = new Block[MagicNumbers.CHUNK_WIDTH][MagicNumbers.CHUNK_HEIGHT];
         this.position = position;
         this.world = world;
@@ -131,6 +131,8 @@ public final class Chunk {
                 }
             }
         }
+
+        world.addChunk(chunk);
 
         return chunk;
     }

@@ -17,7 +17,7 @@ public class MainThread extends Thread {
     private final InetAddress thisAddress;
 
     public MainThread(InetAddress thisAddress) {
-        super();
+        super("Main Server Thread");
         this.thisAddress = thisAddress;
         setDaemon(true);
     }

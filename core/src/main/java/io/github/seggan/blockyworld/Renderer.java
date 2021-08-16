@@ -56,7 +56,7 @@ public final class Renderer {
 
     public void render(@NonNull Chunk chunk) {
         for (Block b : chunk.blocks()) {
-
+            render(b);
         }
     }
 

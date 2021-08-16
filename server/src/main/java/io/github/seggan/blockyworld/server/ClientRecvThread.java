@@ -14,14 +14,14 @@ public class ClientRecvThread extends ClientThread {
     private static final int HEADER_SIZE = Short.BYTES + Integer.BYTES; // 6
 
     public ClientRecvThread(Socket client) {
-        super(client);
+        super(client, "Receiving thread for " + client.getInetAddress().getHostAddress());
     }
 
     @Override
     @SneakyThrows(IOException.class)
     public void run() {
         InputStream in = client.getInputStream();
-        while (!client.isInputShutdown()) {
+        while (!client.isClosed() && !stop) {
             byte[] header = in.readNBytes(HEADER_SIZE);
             if (header.length == 0) break;
             ByteBuffer buffer = ByteBuffer.wrap(header);
@@ -34,5 +34,9 @@ public class ClientRecvThread extends ClientThread {
             Packet packet = PacketType.getByCode(code).unpack(MessagePack.newDefaultUnpacker(body), false, client.getInetAddress());
             Server.mainThread().addRequest(packet);
         }
+        ClientSendThread thr = Server.SENDING_THREADS.get(client.getInetAddress());
+        thr.stopThread();
+        Server.SENDING_THREADS.remove(client.getInetAddress());
+        Server.RECEIVING_THREADS.remove(client.getInetAddress());
     }
 }

@@ -61,6 +61,12 @@ public final class World {
         }
     }
 
+    void addChunk(@NotNull Chunk chunk) {
+        synchronized (chunks) {
+            chunks.put(chunk.position(), chunk);
+        }
+    }
+
     @NotNull
     public Block getBlockAt(@NonNull Position position) {
         synchronized (chunks) {

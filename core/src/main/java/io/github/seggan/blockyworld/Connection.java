@@ -1,8 +1,10 @@
 package io.github.seggan.blockyworld;
 
+import io.github.seggan.blockyworld.server.ChunkPacket;
 import io.github.seggan.blockyworld.server.Packet;
 import io.github.seggan.blockyworld.server.PacketType;
 import io.github.seggan.blockyworld.server.WorldPacket;
+import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.msgpack.core.MessagePack;
@@ -16,6 +18,8 @@ import java.io.UncheckedIOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 public final class Connection {
 
@@ -26,6 +30,8 @@ public final class Connection {
     private final InputStream in;
     private final InetAddress address;
 
+    private final Queue<Packet> queue = new ConcurrentLinkedDeque<>();
+
     public Connection(@NonNull Socket socket) {
         this.socket = socket;
         try {
@@ -35,24 +41,49 @@ public final class Connection {
             throw new UncheckedIOException(e);
         }
         address = socket.getInetAddress();
+
+        Thread thread = new Thread(() -> {
+            while (!socket.isInputShutdown()) {
+                try {
+                    byte[] header;
+                    header = in.readNBytes(HEADER_SIZE);
+                    ByteBuffer buffer = ByteBuffer.wrap(header);
+                    short code = buffer.getShort();
+                    if (code == 4) continue;
+                    int length = buffer.getInt();
+                    byte[] body = in.readNBytes(length);
+                    Packet pack = PacketType.getByCode(code).unpack(MessagePack.newDefaultUnpacker(body), true, address);
+                    queue.add(pack);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    break;
+                }
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
     }
 
     /**
      * Sends the packet
+     *
      * @param toSend the packet to send
      * @return a packet sent pack
      */
     @Nullable
-    public Packet sendPacket(@NonNull Packet toSend) {
+    public <T extends Packet> T sendPacket(@NonNull Packet toSend, @Nullable Class<T> returnType) {
         try {
             socket.getOutputStream().write(toSend.serialize());
 
-            byte[] header = in.readNBytes(HEADER_SIZE);
-            ByteBuffer buffer = ByteBuffer.wrap(header);
-            short code = buffer.getShort();
-            int length = buffer.getInt();
-            byte[] body = in.readNBytes(length);
-            return PacketType.getByCode(code).unpack(MessagePack.newDefaultUnpacker(body), true, address);
+            while (true) {
+                Packet pack = queue.poll();
+                if (pack != null) {
+                    if (pack.getClass().equals(returnType)) {
+                        return returnType.cast(pack);
+                    }
+                    queue.add(pack);
+                }
+            }
         } catch (IOException e) {
             return null;
         }
@@ -60,11 +91,20 @@ public final class Connection {
 
     @Nullable
     public World requestWorld() {
-       if (sendPacket(new WorldPacket(address)) instanceof WorldPacket worldPacket) {
-           return worldPacket.world();
-       }
+        WorldPacket packet = sendPacket(new WorldPacket(address), WorldPacket.class);
+        if (packet == null) return null;
+        return packet.world();
+    }
 
-       return null;
+    @Nullable
+    public Chunk requestChunk(int pos, @NonNull World world) {
+        ChunkPacket packet = sendPacket(new ChunkPacket(pos, world, address), ChunkPacket.class);
+        if (packet == null) return null;
+        return packet.chunk();
+    }
+
+    public Packet nextReceived() {
+        return queue.poll();
     }
 
 }
