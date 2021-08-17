@@ -25,21 +25,18 @@ public final class Renderer {
 
     private final SpriteBatch batch;
 
-    private double xRatio = 1;
-    private double yRatio = 1;
-
     public Renderer(SpriteBatch batch) {
         this.batch = batch;
     }
 
-    public void render(@NonNull Block block) {
+    public void render(@NonNull Block block, int offset) {
         Material material = block.material();
         if (material == Material.AIR) return;
         if (!cache.containsKey(material)) {
             Pixmap orig = new Pixmap(Gdx.files.internal("blocks/" + material.defaultTexture() + ".png"));
             Pixmap newPix = new Pixmap(
-                (int) (MagicNumbers.WORLD_SCREEN_RATIO * xRatio),
-                (int) (MagicNumbers.WORLD_SCREEN_RATIO * yRatio),
+                MagicNumbers.WORLD_SCREEN_RATIO,
+                MagicNumbers.WORLD_SCREEN_RATIO,
                 orig.getFormat()
             );
             newPix.drawPixmap(orig, 0, 0, orig.getWidth(), orig.getHeight(), 0, 0, newPix.getWidth(), newPix.getHeight());
@@ -51,22 +48,17 @@ public final class Renderer {
         }
 
         Position pos = BlockyWorld.worldToScreen(block.position());
-        batch.draw(cache.get(material), pos.x(), pos.y());
+        batch.draw(cache.get(material), pos.x() + offset, pos.y());
     }
 
     public void render(@NonNull Chunk chunk) {
+        int offset = chunk.position() * MagicNumbers.CHUNK_WIDTH * MagicNumbers.WORLD_SCREEN_RATIO;
         for (Block b : chunk.blocks()) {
-            render(b);
+            render(b, offset);
         }
     }
 
     void dispose() {
-        clearCache();
-    }
-
-    public void aspectRatio(double x, double y) {
-        this.xRatio = x;
-        this.yRatio = y;
         clearCache();
     }
 

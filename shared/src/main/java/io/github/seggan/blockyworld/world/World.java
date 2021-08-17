@@ -67,6 +67,12 @@ public final class World {
         }
     }
 
+    public Collection<Chunk> chunks() {
+        synchronized (chunks) {
+            return chunks.values();
+        }
+    }
+
     @NotNull
     public Block getBlockAt(@NonNull Position position) {
         synchronized (chunks) {
