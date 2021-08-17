@@ -5,6 +5,7 @@ import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.util.SerialUtil;
 import io.github.seggan.blockyworld.world.block.Block;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +28,7 @@ public final class World {
 
     private static final Map<UUID, World> worlds = new ConcurrentHashMap<>();
 
-    private final Int2ObjectMap<Chunk> chunks = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectMap<Chunk> chunks = Int2ObjectMaps.synchronize(new Int2ObjectOpenHashMap<>());
     @Getter
     private final UUID uuid;
     @Getter
@@ -51,33 +52,38 @@ public final class World {
         return worlds.get(uuid);
     }
 
-    public static Collection<World> getWorlds() {
+    public static Collection<World> worlds() {
         return worlds.values();
     }
 
+    public static World unpack(@NonNull MessageUnpacker unpacker) throws IOException {
+        String name = unpacker.unpackString();
+        return new World(SerialUtil.unpackUUID(unpacker), name);
+    }
+
     public Chunk getChunk(int pos) {
-        synchronized (chunks) {
-            return chunks.computeIfAbsent(pos, i -> new Chunk(i, this));
-        }
+        return chunks.computeIfAbsent(pos, i -> new Chunk(i, this));
     }
 
     void addChunk(@NotNull Chunk chunk) {
-        synchronized (chunks) {
-            chunks.put(chunk.position(), chunk);
-        }
+        chunks.put(chunk.position(), chunk);
+    }
+
+    public void removeChunk(int pos) {
+        chunks.remove(pos);
+    }
+
+    public boolean isChunkLoaded(int pos) {
+        return chunks.containsKey(pos);
     }
 
     public Collection<Chunk> chunks() {
-        synchronized (chunks) {
-            return chunks.values();
-        }
+        return chunks.values();
     }
 
     @NotNull
     public Block getBlockAt(@NonNull Position position) {
-        synchronized (chunks) {
-            return chunks.get(NumberUtil.worldToChunk(position.x())).getBlock(NumberUtil.worldToInChunk(position));
-        }
+        return chunks.get(NumberUtil.worldToChunk(position.x())).getBlock(NumberUtil.worldToInChunk(position));
     }
 
     @NotNull
@@ -88,10 +94,5 @@ public final class World {
     public void pack(@NonNull MessageBufferPacker packer) throws IOException {
         packer.packString(name);
         SerialUtil.packUUID(packer, uuid);
-    }
-
-    public static World unpack(@NonNull MessageUnpacker unpacker) throws IOException {
-        String name = unpacker.unpackString();
-        return new World(SerialUtil.unpackUUID(unpacker), name);
     }
 }

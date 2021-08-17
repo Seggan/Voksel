@@ -3,7 +3,6 @@ package io.github.seggan.blockyworld;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Frustum;
 import com.badlogic.gdx.math.Rectangle;
 import io.github.seggan.blockyworld.util.MagicNumbers;
@@ -11,6 +10,7 @@ import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.block.Block;
 import io.github.seggan.blockyworld.world.block.Material;
+import org.jetbrains.annotations.NotNull;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -25,10 +25,10 @@ public final class Renderer {
     @Getter(AccessLevel.NONE)
     private final Map<Material, Texture> cache = new EnumMap<>(Material.class);
 
-    private final SpriteBatch batch;
+    private final MainScreen screen;
 
-    public Renderer(SpriteBatch batch) {
-        this.batch = batch;
+    public Renderer(@NotNull MainScreen screen) {
+        this.screen = screen;
     }
 
     public void render(@NonNull Block block, int offset) {
@@ -50,10 +50,10 @@ public final class Renderer {
             newPix.dispose();
         }
 
-        Position pos = BlockyWorld.worldToScreen(block.position());
+        Position pos = screen.worldToScreen(block.position());
         int x = pos.x() + offset;
         int y = pos.y();
-        Frustum frustum = BlockyWorld.viewport().getCamera().frustum;
+        Frustum frustum = screen.viewport().getCamera().frustum;
         if (frustum.pointInFrustum(x, y, 0) ||
             frustum.pointInFrustum(
                 x + MagicNumbers.WORLD_SCREEN_RATIO,
@@ -62,7 +62,7 @@ public final class Renderer {
             ) || frustum.pointInFrustum(x + MagicNumbers.WORLD_SCREEN_RATIO, y, 0) ||
             frustum.pointInFrustum(x, y + MagicNumbers.WORLD_SCREEN_RATIO, 0)
         ) {
-            batch.draw(cache.get(material), x, y);
+            screen.batch().draw(cache.get(material), x, y);
         }
     }
 

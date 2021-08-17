@@ -7,6 +7,7 @@ import lombok.SneakyThrows;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 
 public class ClientRecvThread extends ClientThread {
@@ -22,7 +23,12 @@ public class ClientRecvThread extends ClientThread {
     public void run() {
         InputStream in = client.getInputStream();
         while (!client.isClosed() && !stop) {
-            byte[] header = in.readNBytes(HEADER_SIZE);
+            byte[] header;
+            try {
+                header = in.readNBytes(HEADER_SIZE);
+            } catch (SocketException e) {
+                break;
+            }
             if (header.length == 0) break;
             ByteBuffer buffer = ByteBuffer.wrap(header);
             short code = buffer.getShort();
