@@ -4,6 +4,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Frustum;
+import com.badlogic.gdx.math.Rectangle;
 import io.github.seggan.blockyworld.util.MagicNumbers;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.world.Chunk;
@@ -30,6 +32,7 @@ public final class Renderer {
     }
 
     public void render(@NonNull Block block, int offset) {
+        Rectangle rectangle = new Rectangle(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         Material material = block.material();
         if (material == Material.AIR) return;
         if (!cache.containsKey(material)) {
@@ -48,7 +51,19 @@ public final class Renderer {
         }
 
         Position pos = BlockyWorld.worldToScreen(block.position());
-        batch.draw(cache.get(material), pos.x() + offset, pos.y());
+        int x = pos.x() + offset;
+        int y = pos.y();
+        Frustum frustum = BlockyWorld.viewport().getCamera().frustum;
+        if (frustum.pointInFrustum(x, y, 0) ||
+            frustum.pointInFrustum(
+                x + MagicNumbers.WORLD_SCREEN_RATIO,
+                y + MagicNumbers.WORLD_SCREEN_RATIO,
+                0
+            ) || frustum.pointInFrustum(x + MagicNumbers.WORLD_SCREEN_RATIO, y, 0) ||
+            frustum.pointInFrustum(x, y + MagicNumbers.WORLD_SCREEN_RATIO, 0)
+        ) {
+            batch.draw(cache.get(material), x, y);
+        }
     }
 
     public void render(@NonNull Chunk chunk) {
