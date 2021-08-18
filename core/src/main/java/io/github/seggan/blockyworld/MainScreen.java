@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -35,6 +36,8 @@ class MainScreen implements Screen {
     private float delta = 0;
 
     private int speed = 1;
+
+    private final BitmapFont font = new BitmapFont();
 
     MainScreen() {
         inst = this;
@@ -74,6 +77,10 @@ class MainScreen implements Screen {
         for (Chunk chunk : world.chunks()) {
             renderer.render(chunk);
         }
+
+        font.draw(batch, "Speed: " + speed, 0, camera.viewportHeight);
+        font.draw(batch, "X: " + -SCREEN_OFFSET_X / MagicNumbers.WORLD_SCREEN_RATIO, 0, camera.viewportHeight - 20);
+        font.draw(batch, "Y: " + -SCREEN_OFFSET_Y / MagicNumbers.WORLD_SCREEN_RATIO, 0, camera.viewportHeight - 40);
         batch.end();
 
         if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
@@ -129,13 +136,13 @@ class MainScreen implements Screen {
 
     private void updateChunks() {
         int chunkpos = -(SCREEN_OFFSET_X / MagicNumbers.WORLD_SCREEN_RATIO / MagicNumbers.CHUNK_WIDTH);
-        System.out.println(chunkpos);
+        int onSides = (int) Math.ceil(Math.abs(viewport.getScreenWidth() / MagicNumbers.WORLD_SCREEN_RATIO / MagicNumbers.CHUNK_WIDTH) / 2F) + 2;
         for (Chunk chunk : world.chunks()) {
-            if (Math.abs(chunk.position() - chunkpos) > 2) {
+            if (Math.abs(chunk.position() - chunkpos) > onSides) {
                 world.removeChunk(chunk.position());
                 System.out.println("Unloaded chunk " + chunk.position());
             }
-            for (int pos = chunkpos - 2; pos <= chunkpos + 2; pos++) {
+            for (int pos = chunkpos - onSides; pos <= chunkpos + onSides; pos++) {
                 if (!world.isChunkLoaded(pos)) {
                     BlockyWorld.connection().requestChunk(pos, world);
                     System.out.println("Loaded chunk " + pos);

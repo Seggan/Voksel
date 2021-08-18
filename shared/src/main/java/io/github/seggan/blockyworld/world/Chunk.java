@@ -31,7 +31,7 @@ public final class Chunk {
         this.position = position;
         this.world = world;
         ChunkGenerator generator = new ChunkGenerator(this);
-        generator.generateChunk(this.blocks);
+        generator.generateChunk(this);
     }
 
     public void setBlock(@NonNull Material material, int x, int y, @Nullable BlockData data) {
