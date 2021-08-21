@@ -1,7 +1,11 @@
+plugins {
+	id "com.github.johnrengelman.shadow" version "7.0.0"
+}
+
 apply plugin: 'application'
 
 sourceCompatibility = 16
-mainClassName = 'io.github.seggan.blockyworld.server.ServerLauncher'
+mainClassName = 'io.github.seggan.blockyworld.server.Server'
 eclipse.project.name = appName + '-server'
 
 dependencies {

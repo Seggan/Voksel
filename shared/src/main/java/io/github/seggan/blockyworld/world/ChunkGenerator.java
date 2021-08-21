@@ -1,3 +1,21 @@
+/*
+ * A light 2D Minecraft clone
+ * Copyright (C) 2021 Seggan (segganew@gmail.com)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package io.github.seggan.blockyworld.world;
 
 import com.google.errorprone.annotations.ForOverride;
@@ -25,10 +43,10 @@ public final class ChunkGenerator {
     public ChunkGenerator(@NonNull Chunk chunk) {
         this.chunk = chunk;
         noise.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
-        noise.SetFractalOctaves(8);
+        noise.SetFractalOctaves(16);
         noise.SetFrequency(0.01F);
         noise2.SetNoiseType(FastNoiseLite.NoiseType.Perlin);
-        noise2.SetFractalOctaves(8);
+        noise2.SetFractalOctaves(32);
         noise2.SetFrequency(0.01F);
     }
 
@@ -42,7 +60,7 @@ public final class ChunkGenerator {
         for (int x = 0; x < MagicNumbers.CHUNK_WIDTH; x++) {
             float n = noise.GetNoise(x + chunk().position() * MagicNumbers.CHUNK_WIDTH, 0);
             float n2 = noise2.GetNoise(x + chunk.position() * MagicNumbers.CHUNK_WIDTH, 0);
-            int height = (int) (40 + 20 * (n + n2));
+            int height = Math.min((int) (40 + 20 * (n + n2 / 2)), 255);
             for (int y = 0; y < height; y++) {
                 chunk.setBlock(Material.STONE, x, y, null);
             }

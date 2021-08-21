@@ -1,3 +1,21 @@
+/*
+ * A light 2D Minecraft clone
+ * Copyright (C) 2021 Seggan (segganew@gmail.com)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package io.github.seggan.blockyworld.world;
 
 import io.github.seggan.blockyworld.util.MagicNumbers;
@@ -100,7 +118,7 @@ public final class Chunk {
                 } else {
                     // Reason I'm doing this instead of Block#pack is because I don't need
                     // to pack duplicate UUIDs/chunk positions, reducing size
-                    packer.packShort(b.position().compressShort());
+                    b.position().pack(packer);
                     packer.packString(b.material().name());
                     BlockData data = b.blockData();
                     if (data == null) {
@@ -121,7 +139,7 @@ public final class Chunk {
         for (int x = 0; x < MagicNumbers.CHUNK_WIDTH; x++) {
             for (int y = 0; y < MagicNumbers.CHUNK_HEIGHT; y++) {
                 if (!unpacker.tryUnpackNil()) {
-                    Position pos = Position.decompressShort(unpacker.unpackShort());
+                    Position pos = Position.unpack(unpacker);
                     Material material = Material.valueOf(unpacker.unpackString());
                     BlockData data = null;
                     if (!unpacker.tryUnpackNil()) {
