@@ -2,6 +2,9 @@
 eclipse.project.name = appName + '-shared'
 
 dependencies {
+    api "com.badlogicgames.gdx:gdx:$gdxVersion"
+    api "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
+
     // User deps
     compileOnlyApi 'org.projectlombok:lombok:1.18.20'
     annotationProcessor 'org.projectlombok:lombok:1.18.20'

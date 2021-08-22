@@ -16,41 +16,38 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.seggan.blockyworld.util;
+package io.github.seggan.blockyworld.entity;
 
+import com.badlogic.gdx.math.Vector2;
+import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper;
+import io.github.seggan.blockyworld.util.MagicNumbers;
+import io.github.seggan.blockyworld.util.SerialUtil;
 import org.msgpack.core.MessageBufferPacker;
-import org.msgpack.core.MessageUnpacker;
 
+import lombok.Getter;
 import lombok.NonNull;
 
 import java.awt.geom.Point2D;
 import java.io.IOException;
 
-/**
- * An immutable position in 2D space
- *
- * @see Point2D
- */
-public record Position(int x, int y) {
+@Getter
+public abstract class AbstractEntity {
 
-    public static Position unpack(MessageUnpacker unpacker) throws IOException {
-        return new Position(unpacker.unpackInt(), unpacker.unpackInt());
+    private final Point2D position;
+    private final Vector2 direction;
+
+    protected AbstractEntity(@NonNull Point2D position) {
+        this.position = position;
+        direction = Vector2.Zero;
     }
 
-    public void pack(MessageBufferPacker packer) throws IOException {
-        packer.packInt(x);
-        packer.packInt(y);
+    public void applyGravity() {
+        direction.add(MagicNumbers.GRAVITY);
     }
 
-    public long compress() {
-        return (long) x << 32 | y & 0xFFFFFFFFL;
-    }
-
-    public int distanceSquared(@NonNull Position other) {
-        return (other.y - y) * (other.y - y) + (other.x - x) * (other.x - x);
-    }
-
-    public double distanceTo(@NonNull Position other) {
-        return Math.sqrt(distanceSquared(other));
+    @OverridingMethodsMustInvokeSuper
+    protected void pack(@NonNull MessageBufferPacker packer) throws IOException {
+        SerialUtil.packPoint(packer, position);
+        SerialUtil.packVector(packer, direction);
     }
 }

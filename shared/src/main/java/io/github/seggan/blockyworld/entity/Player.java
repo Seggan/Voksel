@@ -16,19 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.seggan.blockyworld.util;
+package io.github.seggan.blockyworld.entity;
 
-import com.badlogic.gdx.math.Vector2;
+import java.awt.geom.Point2D;
 
-import lombok.experimental.UtilityClass;
+public final class Player extends AbstractEntity {
 
-@UtilityClass
-public final class MagicNumbers {
-
-    public static final int WORLD_SCREEN_RATIO = 16;
-
-    public static final int CHUNK_HEIGHT = 256;
-    public static final int CHUNK_WIDTH = 16;
-
-    public static final Vector2 GRAVITY = new Vector2(0, -1);
+    public Player() {
+        super(new Point2D.Double(0, 50));
+    }
 }
