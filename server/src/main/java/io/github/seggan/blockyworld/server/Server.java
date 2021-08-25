@@ -70,14 +70,15 @@ public class Server {
             Socket socket = server.accept();
             short ver = ByteBuffer.wrap(socket.getInputStream().readNBytes(2)).getShort();
             if (ver != Packet.PROTOCOL_VERSION) {
-                // The invalid protocol packet: 00 03 packet, 00 00 00 02 size, 2 bytes protocol version
+                // The invalid protocol packet: 00 03 packet,
+                // 2 bytes protocol version
                 socket.getOutputStream().write(Bytes.concat(new byte[]{0, 3},
                     ByteBuffer.allocate(Short.BYTES).putShort(Packet.PROTOCOL_VERSION).array()));
                 socket.close();
                 continue;
             }
 
-            socket.getOutputStream().write(new byte[]{0, 4});
+            socket.getOutputStream().write(new OKPacket(server.getInetAddress()).serialize());
 
             InetAddress address = socket.getInetAddress();
             ClientRecvThread thread = new ClientRecvThread(socket);
@@ -97,7 +98,10 @@ public class Server {
                 thread.send(bytes);
             }
         } else {
-            SENDING_THREADS.get(sendTo).send(bytes);
+            ClientSendThread thread = SENDING_THREADS.get(sendTo);
+            if (thread != null) {
+                thread.send(bytes);
+            }
         }
     }
 }

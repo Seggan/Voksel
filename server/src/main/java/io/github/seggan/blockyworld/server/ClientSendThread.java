@@ -22,12 +22,12 @@ import lombok.SneakyThrows;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class ClientSendThread extends ClientThread {
 
-    private final Queue<byte[]> sendQueue = new ConcurrentLinkedDeque<>();
+    private final BlockingQueue<byte[]> sendQueue = new LinkedBlockingQueue<>();
 
     public ClientSendThread(Socket client) {
         super(client, "Sending thread for " + client.getInetAddress().getHostAddress());
@@ -38,9 +38,12 @@ public class ClientSendThread extends ClientThread {
     public void run() {
         while (!client.isClosed() && !stop) {
             byte[] bytes;
-            if ((bytes = sendQueue.poll()) != null) {
-                client.getOutputStream().write(bytes);
+            try {
+                bytes = sendQueue.take();
+            } catch (InterruptedException e) {
+                return;
             }
+            client.getOutputStream().write(bytes);
         }
     }
 

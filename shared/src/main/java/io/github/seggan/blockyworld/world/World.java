@@ -18,13 +18,13 @@
 
 package io.github.seggan.blockyworld.world;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import io.github.seggan.blockyworld.entity.Player;
 import io.github.seggan.blockyworld.util.NumberUtil;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.util.SerialUtil;
 import io.github.seggan.blockyworld.world.block.Block;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,84 +33,105 @@ import org.msgpack.core.MessageUnpacker;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.ToString;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-@ToString
-public final class World {
+@Getter
+public abstract class World {
 
     private static final Map<UUID, World> worlds = new ConcurrentHashMap<>();
+    private static final Constructor<? extends World> ctor;
 
-    private final Int2ObjectMap<Chunk> chunks = Int2ObjectMaps.synchronize(new Int2ObjectOpenHashMap<>());
-    @Getter
-    private final UUID uuid;
-    @Getter
+    static {
+        Constructor<? extends World> ctor1;
+        try {
+            Class<? extends World> clazz = Class.forName("io.github.seggan.blockyworld.world.ClientWorld").asSubclass(World.class);
+            ctor1 = clazz.getConstructor(String.class, UUID.class);
+            ctor1.setAccessible(true);
+        } catch (ClassNotFoundException | NoSuchMethodException ignored) {
+            ctor1 = null;
+        }
+
+        ctor = ctor1;
+    }
+
     private final String name;
+    private final UUID uuid;
 
-    public World(UUID uuid, String name) {
-        this.uuid = uuid;
+    private final Set<Player> players = Sets.newConcurrentHashSet();
+
+    protected World(String name, UUID uuid) {
         this.name = name;
+        this.uuid = uuid;
 
         worlds.put(this.uuid, this);
     }
 
-    public World(String name) {
-        this(UUID.randomUUID(), name);
-    }
-
     @Nullable
     @Contract("null -> null")
-    public static World getByUUID(@Nullable UUID uuid) {
+    public static World byUUID(@Nullable UUID uuid) {
         if (uuid == null) return null;
         return worlds.get(uuid);
     }
 
-    public static Collection<World> worlds() {
-        return worlds.values();
+    public static Set<World> worlds() {
+        return ImmutableSet.copyOf(worlds.values());
     }
 
     public static World unpack(@NonNull MessageUnpacker unpacker) throws IOException {
         String name = unpacker.unpackString();
-        return new World(SerialUtil.unpackUUID(unpacker), name);
+        UUID uuid = SerialUtil.unpackUUID(unpacker);
+
+        if (ctor != null) {
+            try {
+                return ctor.newInstance(name, uuid);
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                throw new RuntimeException(e.getCause());
+            }
+        } else {
+            return new ServerWorld(name, uuid);
+        }
     }
 
-    public Chunk getChunk(int pos) {
-        return chunks.computeIfAbsent(pos, i -> new Chunk(i, this));
-    }
+    public abstract Chunk chunk(int pos);
 
-    void addChunk(@NotNull Chunk chunk) {
-        chunks.put(chunk.position(), chunk);
-    }
+    public abstract void removeChunk(int pos);
 
-    public void removeChunk(int pos) {
-        chunks.remove(pos);
-    }
+    public abstract boolean isChunkLoaded(int pos);
 
-    public boolean isChunkLoaded(int pos) {
-        return chunks.containsKey(pos);
-    }
+    public abstract Set<Chunk> chunks();
 
-    public Collection<Chunk> chunks() {
-        return chunks.values();
+    @NotNull
+    public Block blockAt(@NonNull Position position) {
+        return chunk(NumberUtil.worldToChunk(position.x())).getBlock(NumberUtil.worldToInChunk(position));
     }
 
     @NotNull
-    public Block getBlockAt(@NonNull Position position) {
-        return chunks.get(NumberUtil.worldToChunk(position.x())).getBlock(NumberUtil.worldToInChunk(position));
+    public Block blockAt(int x, int y) {
+        return blockAt(new Position(x, y));
     }
 
-    @NotNull
-    public Block getBlockAt(int x, int y) {
-        return getBlockAt(new Position(x, y));
+    public void addPlayer(@NonNull Player p) {
+        players.add(p);
+    }
+
+    public void removePlayer(@NonNull Player p) {
+        players.remove(p);
+    }
+
+    public Set<Player> players() {
+        return ImmutableSet.copyOf(players);
     }
 
     public void pack(@NonNull MessageBufferPacker packer) throws IOException {
-        packer.packString(name);
-        SerialUtil.packUUID(packer, uuid);
+        packer.packString(name());
+        SerialUtil.packUUID(packer, uuid());
     }
+
 }

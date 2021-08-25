@@ -16,30 +16,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.seggan.blockyworld.entity;
+package io.github.seggan.blockyworld.server;
 
-import com.badlogic.gdx.math.Vector2;
-import io.github.seggan.blockyworld.util.Location;
-import org.apache.commons.lang3.tuple.Triple;
-import org.msgpack.core.MessageUnpacker;
+import org.msgpack.core.MessageBufferPacker;
 
 import lombok.NonNull;
 
 import java.io.IOException;
-import java.util.UUID;
+import java.net.InetAddress;
 
-public final class Player extends Entity {
+public final class OKPacket extends Packet {
 
-    public Player() {
-        this(new Location(null,0, 0), Vector2.Zero, UUID.randomUUID());
+    public OKPacket(@NonNull InetAddress address) {
+        super(PacketType.OK, true, address);
     }
 
-    private Player(@NonNull Location location, @NonNull Vector2 direction, @NonNull UUID uuid) {
-        super(location, direction, uuid);
-    }
-
-    public static Player unpack(@NonNull MessageUnpacker unpacker) throws IOException {
-        Triple<Location, Vector2, UUID> dat = beginUnpack(unpacker);
-        return new Player(dat.getLeft(), dat.getMiddle(), dat.getRight());
+    @Override
+    protected void pack(@NonNull MessageBufferPacker packer) throws IOException {
     }
 }

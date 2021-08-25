@@ -28,6 +28,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import io.github.seggan.blockyworld.entity.Player;
 import io.github.seggan.blockyworld.util.MagicNumbers;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.world.Chunk;
@@ -47,6 +48,8 @@ class MainScreen implements Screen {
     private final Viewport viewport;
     private final World world;
     private final Renderer renderer;
+
+    private final Player player;
 
     private int SCREEN_OFFSET_X = 0;
     private int SCREEN_OFFSET_Y = 0;
@@ -69,9 +72,10 @@ class MainScreen implements Screen {
         connection = BlockyWorld.connection();
 
         world = connection.requestWorld();
-        connection.requestChunk(0, world);
-        connection.requestChunk(-1, world);
-        connection.requestChunk(1, world);
+        world.chunk(-1);
+
+        player = new Player();
+        connection.connectPlayer(player);
     }
 
     public Position worldToScreen(@NonNull Position position) {
@@ -162,7 +166,7 @@ class MainScreen implements Screen {
             }
             for (int pos = chunkpos - onSides; pos <= chunkpos + onSides; pos++) {
                 if (!world.isChunkLoaded(pos)) {
-                    BlockyWorld.connection().requestChunk(pos, world);
+                    world.chunk(pos);
                     System.out.println("Loaded chunk " + pos);
                 }
             }

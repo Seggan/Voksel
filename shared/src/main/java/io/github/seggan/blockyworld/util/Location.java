@@ -18,35 +18,42 @@
 
 package io.github.seggan.blockyworld.util;
 
-import com.badlogic.gdx.math.Vector2;
+import io.github.seggan.blockyworld.world.World;
+import org.jetbrains.annotations.Nullable;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessageUnpacker;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NonNull;
-import lombok.experimental.UtilityClass;
 
 import java.io.IOException;
-import java.util.UUID;
 
-@UtilityClass
-public final class SerialUtil {
+@Data
+@AllArgsConstructor
+public final class Location {
 
-    public static void packUUID(@NonNull MessageBufferPacker packer, @NonNull UUID uuid) throws IOException {
-        packer.packLong(uuid.getMostSignificantBits());
-        packer.packLong(uuid.getLeastSignificantBits());
+    @Nullable
+    private World world;
+
+    private double x;
+    private double y;
+
+    public static Location unpack(@NonNull MessageUnpacker unpacker) throws IOException {
+        World world = null;
+        if (!unpacker.tryUnpackNil()) {
+            world = World.byUUID(SerialUtil.unpackUUID(unpacker));
+        }
+        return new Location(world, unpacker.unpackDouble(), unpacker.unpackDouble());
     }
 
-    public static UUID unpackUUID(@NonNull MessageUnpacker unpacker) throws IOException {
-        return new UUID(unpacker.unpackLong(), unpacker.unpackLong());
+    public void pack(@NonNull MessageBufferPacker packer) throws IOException {
+        if (world == null) {
+            packer.packNil();
+        } else {
+            SerialUtil.packUUID(packer, world.uuid());
+        }
+        packer.packDouble(x);
+        packer.packDouble(y);
     }
-
-    public static void packVector(@NonNull MessageBufferPacker packer, @NonNull Vector2 vector) throws IOException {
-        packer.packFloat(vector.x);
-        packer.packFloat(vector.y);
-    }
-
-    public static Vector2 unpackVector(@NonNull MessageUnpacker unpacker) throws IOException {
-        return new Vector2(unpacker.unpackFloat(), unpacker.unpackFloat());
-    }
-
 }

@@ -20,6 +20,7 @@ package io.github.seggan.blockyworld;
 
 import com.badlogic.gdx.Game;
 import io.github.seggan.blockyworld.server.Packet;
+import io.github.seggan.blockyworld.server.PacketType;
 
 import lombok.Getter;
 
@@ -54,11 +55,12 @@ public class BlockyWorld extends Game {
                 System.err.println("Incompatible protocol version; server " + version + " client " + Packet.PROTOCOL_VERSION);
                 System.exit(0);
                 throw null;
-            } else if (code != 4) {
+            } else if (code != PacketType.OK.code()) {
                 System.err.println("Invalid packet: " + code);
                 System.exit(1);
                 throw null;
             }
+            soc.getInputStream().skipNBytes(Integer.BYTES);
         } catch (IOException e) {
             System.err.println("Could not connect to server:");
             e.printStackTrace();

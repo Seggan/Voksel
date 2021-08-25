@@ -18,6 +18,7 @@
 
 package io.github.seggan.blockyworld.server;
 
+import io.github.seggan.blockyworld.entity.Player;
 import io.github.seggan.blockyworld.util.SerialUtil;
 import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.World;
@@ -34,7 +35,7 @@ import java.net.InetAddress;
 @Getter
 @AllArgsConstructor
 public enum PacketType {
-    REQUEST_CHUNK(0x01) {
+    REQUEST_CHUNK(0x01, false) {
         @NotNull
         @Override
         public Packet unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException {
@@ -43,13 +44,13 @@ public enum PacketType {
             } else {
                 return new ChunkPacket(
                     unpacker.unpackInt(),
-                    World.getByUUID(SerialUtil.unpackUUID(unpacker)),
+                    World.byUUID(SerialUtil.unpackUUID(unpacker)),
                     address
                 );
             }
         }
     },
-    REQUEST_WORLD(0x02) {
+    REQUEST_WORLD(0x02, false) {
         @NotNull
         @Override
         public Packet unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException {
@@ -59,15 +60,29 @@ public enum PacketType {
                 return new WorldPacket(address);
             }
         }
-    };
+    },
     /*
-        0x03 is reserved for the invalid protocol packet, 0x04 for the OK packet
+        0x03 is reserved for the invalid protocol packet
      */
+    OK(0x04, true) {
+        @Override
+        public @NotNull Packet unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException {
+            return new OKPacket(address);
+        }
+    },
+    PLAYER_CONNECT(0x05, true) {
+        @NotNull
+        @Override
+        public Packet unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException {
+            return new PlayerPacket(Player.unpack(unpacker), address);
+        }
+    };
 
     private final short code;
+    private final boolean allowOk;
 
-    PacketType(int code) {
-        this((short) code);
+    PacketType(int code, boolean allowOk) {
+        this((short) code, allowOk);
     }
 
     /**

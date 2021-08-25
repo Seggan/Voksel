@@ -16,38 +16,29 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.seggan.blockyworld.entity;
+package io.github.seggan.blockyworld.server;
 
-import com.badlogic.gdx.math.Vector2;
-import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper;
-import io.github.seggan.blockyworld.util.MagicNumbers;
-import io.github.seggan.blockyworld.util.SerialUtil;
+import io.github.seggan.blockyworld.entity.Player;
 import org.msgpack.core.MessageBufferPacker;
 
 import lombok.Getter;
 import lombok.NonNull;
 
-import java.awt.geom.Point2D;
 import java.io.IOException;
+import java.net.InetAddress;
 
 @Getter
-public abstract class AbstractEntity {
+public final class PlayerPacket extends Packet {
 
-    private final Point2D position;
-    private final Vector2 direction;
+    private final Player player;
 
-    protected AbstractEntity(@NonNull Point2D position) {
-        this.position = position;
-        direction = Vector2.Zero;
+    public PlayerPacket(@NonNull Player player, @NonNull InetAddress address) {
+        super(PacketType.PLAYER_CONNECT, true, address);
+        this.player = player;
     }
 
-    public void applyGravity() {
-        direction.add(MagicNumbers.GRAVITY);
-    }
-
-    @OverridingMethodsMustInvokeSuper
+    @Override
     protected void pack(@NonNull MessageBufferPacker packer) throws IOException {
-        SerialUtil.packPoint(packer, position);
-        SerialUtil.packVector(packer, direction);
+        player.pack(packer);
     }
 }

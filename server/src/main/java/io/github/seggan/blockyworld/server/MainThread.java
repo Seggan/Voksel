@@ -18,46 +18,48 @@
 
 package io.github.seggan.blockyworld.server;
 
-import io.github.seggan.blockyworld.world.World;
+import io.github.seggan.blockyworld.world.ServerWorld;
 
 import lombok.NonNull;
 
 import java.net.InetAddress;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class MainThread extends Thread {
 
-    private final Queue<Packet> pending = new ConcurrentLinkedDeque<>();
+    private final BlockingQueue<Packet> pending = new LinkedBlockingQueue<>();
 
-    private final World world = new World("world");
+    private final ServerWorld world = new ServerWorld("world");
 
     private final InetAddress thisAddress;
+    private final OKPacket okPacket;
 
     public MainThread(InetAddress thisAddress) {
         super("Main Server Thread");
         this.thisAddress = thisAddress;
+        this.okPacket = new OKPacket(thisAddress);
         setDaemon(true);
     }
 
     @Override
     public void run() {
-        //noinspection InfiniteLoopStatement
         while (true) {
             Packet packet;
-            if ((packet = pending.poll()) != null) {
-                if (packet instanceof ChunkPacket chunkRequest) {
-                    ChunkPacket back = new ChunkPacket(world.getChunk(chunkRequest.position()), thisAddress);
-                    Server.send(back, chunkRequest.address());
-                } else if (packet instanceof WorldPacket worldRequest) {
-                    WorldPacket back = new WorldPacket(world, thisAddress);
-                    Server.send(back, worldRequest.address());
-                }
-            } else {
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException ignored) {
-                }
+            try {
+                packet = pending.take();
+            } catch (InterruptedException e) {
+                return;
+            }
+            if (packet instanceof ChunkPacket chunkPacket) {
+                ChunkPacket back = new ChunkPacket(world.chunk(chunkPacket.position()), thisAddress);
+                Server.send(back, chunkPacket.address());
+            } else if (packet instanceof WorldPacket worldPacket) {
+                WorldPacket back = new WorldPacket(world, thisAddress);
+                Server.send(back, worldPacket.address());
+            } else if (packet instanceof PlayerPacket playerPacket) {
+                world.addPlayer(playerPacket.player());
+                Server.send(okPacket, playerPacket.address());
             }
         }
     }

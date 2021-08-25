@@ -18,9 +18,12 @@
 
 package io.github.seggan.blockyworld;
 
+import io.github.seggan.blockyworld.entity.Player;
 import io.github.seggan.blockyworld.server.ChunkPacket;
+import io.github.seggan.blockyworld.server.OKPacket;
 import io.github.seggan.blockyworld.server.Packet;
 import io.github.seggan.blockyworld.server.PacketType;
+import io.github.seggan.blockyworld.server.PlayerPacket;
 import io.github.seggan.blockyworld.server.WorldPacket;
 import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.World;
@@ -36,8 +39,8 @@ import java.io.UncheckedIOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public final class Connection {
 
@@ -48,7 +51,7 @@ public final class Connection {
     private final InputStream in;
     private final InetAddress address;
 
-    private final Queue<Packet> queue = new ConcurrentLinkedDeque<>();
+    private final BlockingQueue<Packet> queue = new LinkedBlockingQueue<>();
 
     public Connection(@NonNull Socket socket) {
         this.socket = socket;
@@ -67,7 +70,6 @@ public final class Connection {
                     header = in.readNBytes(HEADER_SIZE);
                     ByteBuffer buffer = ByteBuffer.wrap(header);
                     short code = buffer.getShort();
-                    if (code == 4) continue;
                     int length = buffer.getInt();
                     byte[] body = in.readNBytes(length);
                     Packet pack = PacketType.getByCode(code).unpack(MessagePack.newDefaultUnpacker(body), true, address);
@@ -94,15 +96,16 @@ public final class Connection {
             socket.getOutputStream().write(toSend.serialize());
 
             while (true) {
-                Packet pack = queue.poll();
-                if (pack != null) {
-                    if (pack.getClass().equals(returnType)) {
-                        return returnType.cast(pack);
-                    }
-                    queue.add(pack);
+                Packet pack = queue.take();
+                if (toSend.type().allowOk() && pack instanceof OKPacket) {
+                    return null;
                 }
+                if (pack.getClass().equals(returnType)) {
+                    return returnType.cast(pack);
+                }
+                queue.add(pack);
             }
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             return null;
         }
     }
@@ -119,6 +122,10 @@ public final class Connection {
         ChunkPacket packet = sendPacket(new ChunkPacket(pos, world, address), ChunkPacket.class);
         if (packet == null) return null;
         return packet.chunk();
+    }
+
+    public void connectPlayer(@NonNull Player player) {
+        sendPacket(new PlayerPacket(player, address), null);
     }
 
     public Packet nextReceived() {

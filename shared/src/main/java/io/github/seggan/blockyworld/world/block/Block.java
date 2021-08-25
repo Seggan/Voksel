@@ -73,8 +73,8 @@ public class Block {
     public static Block unpack(@NonNull MessageUnpacker unpacker) throws IOException {
         Position pos = Position.unpack(unpacker);
         Material mat = Material.valueOf(unpacker.unpackString());
-        World world = World.getByUUID(SerialUtil.unpackUUID(unpacker));
-        Chunk chunk = world.getChunk(unpacker.unpackInt());
+        World world = World.byUUID(SerialUtil.unpackUUID(unpacker));
+        Chunk chunk = world.chunk(unpacker.unpackInt());
         BlockData data = null;
         if (!unpacker.tryUnpackNil()) {
             data = BlockData.unpack(unpacker);

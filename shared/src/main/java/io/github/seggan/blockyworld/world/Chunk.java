@@ -133,7 +133,7 @@ public final class Chunk {
 
     public static Chunk unpack(@NonNull MessageUnpacker unpacker) throws IOException {
         int cPos = unpacker.unpackInt();
-        World world = World.getByUUID(SerialUtil.unpackUUID(unpacker));
+        World world = World.byUUID(SerialUtil.unpackUUID(unpacker));
         Chunk chunk = new Chunk(cPos, world);
 
         for (int x = 0; x < MagicNumbers.CHUNK_WIDTH; x++) {
@@ -150,8 +150,6 @@ public final class Chunk {
             }
         }
 
-        world.addChunk(chunk);
-
         return chunk;
     }
 
@@ -164,6 +162,6 @@ public final class Chunk {
 
     @Override
     public String toString() {
-        return "Chunk(position=" + this.position() + ", world=" + this.world() + ")";
+        return "Chunk(position=" + this.position() + ", world=" + this.world().name() + ")";
     }
 }
