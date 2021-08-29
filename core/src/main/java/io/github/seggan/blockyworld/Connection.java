@@ -18,7 +18,6 @@
 
 package io.github.seggan.blockyworld;
 
-import io.github.seggan.blockyworld.entity.Player;
 import io.github.seggan.blockyworld.server.ChunkPacket;
 import io.github.seggan.blockyworld.server.OKPacket;
 import io.github.seggan.blockyworld.server.Packet;
@@ -27,6 +26,7 @@ import io.github.seggan.blockyworld.server.PlayerPacket;
 import io.github.seggan.blockyworld.server.WorldPacket;
 import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.World;
+import io.github.seggan.blockyworld.world.entity.Player;
 import org.jetbrains.annotations.Nullable;
 import org.msgpack.core.MessagePack;
 

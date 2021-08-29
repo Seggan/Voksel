@@ -53,8 +53,8 @@ public class Block {
     private final Object bdLock = new Object();
 
     public Block(@NonNull Material material, @NonNull Position position, @NonNull Chunk chunk, @Nullable BlockData data) {
-        Validate.exclusiveBetween(-1, MagicNumbers.CHUNK_WIDTH + 1, position.x());
-        Validate.exclusiveBetween(-1, MagicNumbers.CHUNK_HEIGHT + 1, position.y());
+        Validate.inclusiveBetween(0, MagicNumbers.CHUNK_WIDTH, position.x());
+        Validate.inclusiveBetween(0, MagicNumbers.CHUNK_HEIGHT, position.y());
         this.material = material;
         this.position = position;
         this.chunk = chunk;

@@ -18,10 +18,10 @@
 
 package io.github.seggan.blockyworld.server;
 
-import io.github.seggan.blockyworld.entity.Player;
 import io.github.seggan.blockyworld.util.SerialUtil;
 import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.World;
+import io.github.seggan.blockyworld.world.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.msgpack.core.MessageUnpacker;
 

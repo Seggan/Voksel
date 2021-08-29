@@ -45,22 +45,22 @@ public final class Chunk {
     private final World world;
 
     public Chunk(int position, @NonNull World world) {
-        this.blocks = new Block[MagicNumbers.CHUNK_WIDTH][MagicNumbers.CHUNK_HEIGHT];
+        this.blocks = new Block[MagicNumbers.CHUNK_WIDTH][MagicNumbers.CHUNK_HEIGHT + 1];
         this.position = position;
         this.world = world;
         ChunkGenerator generator = new ChunkGenerator(this);
         generator.generateChunk(this);
     }
 
-    public void setBlock(@NonNull Material material, int x, int y, @Nullable BlockData data) {
-        setBlock(material, new Position(x, y), data);
+    public void block(@NonNull Material material, int x, int y, @Nullable BlockData data) {
+        block(material, new Position(x, y), data);
     }
 
-    public void setBlock(@NonNull Material material, @NonNull Position position, @Nullable BlockData data) {
-        setBlock(new Block(material, position, this, data));
+    public void block(@NonNull Material material, @NonNull Position position, @Nullable BlockData data) {
+        block(new Block(material, position, this, data));
     }
 
-    public void setBlock(@NonNull Block block) {
+    public void block(@NonNull Block block) {
         Position position = block.position();
         synchronized (blocks) {
             blocks[position.x()][position.y()] = block;
@@ -88,8 +88,8 @@ public final class Chunk {
     }
 
     @NotNull
-    public Block getBlock(int x, int y) {
-        if (x >= 0 && x < MagicNumbers.CHUNK_WIDTH && y >= 0 && y < MagicNumbers.CHUNK_HEIGHT) {
+    public Block block(int x, int y) {
+        if (x >= 0 && x < MagicNumbers.CHUNK_WIDTH && y >= 0 && y <= MagicNumbers.CHUNK_HEIGHT) {
             synchronized (blocks) {
                 Block b = blocks[x][y];
                 return b == null ? new Block(Material.AIR, x, y, this, null) : b;
@@ -104,8 +104,8 @@ public final class Chunk {
     }
 
     @NotNull
-    public Block getBlock(@NonNull Position position) {
-        return getBlock(position.x(), position.y());
+    public Block block(@NonNull Position position) {
+        return block(position.x(), position.y());
     }
 
     public void pack(@NonNull MessageBufferPacker packer) throws IOException {
@@ -145,7 +145,7 @@ public final class Chunk {
                     if (!unpacker.tryUnpackNil()) {
                         data = BlockData.unpack(unpacker);
                     }
-                    chunk.setBlock(material, pos, data);
+                    chunk.block(material, pos, data);
                 }
             }
         }

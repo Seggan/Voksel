@@ -16,10 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.seggan.blockyworld.entity;
+package io.github.seggan.blockyworld.world.entity;
 
-import com.badlogic.gdx.math.Vector2;
-import io.github.seggan.blockyworld.util.Location;
+import io.github.seggan.blockyworld.util.Vector;
 import org.apache.commons.lang3.tuple.Triple;
 import org.msgpack.core.MessageUnpacker;
 
@@ -31,15 +30,15 @@ import java.util.UUID;
 public final class Player extends Entity {
 
     public Player() {
-        this(new Location(null,0, 0), Vector2.Zero, UUID.randomUUID());
+        this(new Vector(0, 0), new Vector(0, 0), UUID.randomUUID());
     }
 
-    private Player(@NonNull Location location, @NonNull Vector2 direction, @NonNull UUID uuid) {
-        super(location, direction, uuid);
+    private Player(@NonNull Vector Vector, @NonNull Vector direction, @NonNull UUID uuid) {
+        super(Vector, direction, uuid);
     }
 
     public static Player unpack(@NonNull MessageUnpacker unpacker) throws IOException {
-        Triple<Location, Vector2, UUID> dat = beginUnpack(unpacker);
+        Triple<Vector, Vector, UUID> dat = beginUnpack(unpacker);
         return new Player(dat.getLeft(), dat.getMiddle(), dat.getRight());
     }
 }

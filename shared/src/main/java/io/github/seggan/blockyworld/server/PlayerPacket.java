@@ -18,7 +18,7 @@
 
 package io.github.seggan.blockyworld.server;
 
-import io.github.seggan.blockyworld.entity.Player;
+import io.github.seggan.blockyworld.world.entity.Player;
 import org.msgpack.core.MessageBufferPacker;
 
 import lombok.Getter;

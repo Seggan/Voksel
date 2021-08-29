@@ -16,13 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.seggan.blockyworld.entity;
+package io.github.seggan.blockyworld.world.entity;
 
-import com.badlogic.gdx.math.Vector2;
 import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper;
-import io.github.seggan.blockyworld.util.Location;
 import io.github.seggan.blockyworld.util.MagicNumbers;
 import io.github.seggan.blockyworld.util.SerialUtil;
+import io.github.seggan.blockyworld.util.Vector;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.msgpack.core.MessageBufferPacker;
@@ -37,11 +36,11 @@ import java.util.UUID;
 @Getter
 public abstract class Entity {
 
-    private final Location position;
-    private final Vector2 direction;
+    private final Vector position;
+    private final Vector direction;
     private final UUID uuid;
 
-    protected Entity(@NonNull Location position, @NonNull Vector2 direction, @NonNull UUID uuid) {
+    protected Entity(@NonNull Vector position, @NonNull Vector direction, @NonNull UUID uuid) {
         this.position = position;
         this.direction = direction;
         this.uuid = uuid;
@@ -54,12 +53,26 @@ public abstract class Entity {
     @OverridingMethodsMustInvokeSuper
     public void pack(@NonNull MessageBufferPacker packer) throws IOException {
         position.pack(packer);
-        SerialUtil.packVector(packer, direction);
+        direction.pack(packer);
         SerialUtil.packUUID(packer, uuid);
     }
 
-    protected static Triple<Location, Vector2, UUID> beginUnpack(@NonNull MessageUnpacker unpacker) throws IOException {
-        return new ImmutableTriple<>(Location.unpack(unpacker), SerialUtil.unpackVector(unpacker), SerialUtil.unpackUUID(unpacker));
+    public void position(@NonNull Vector location) {
+        position(location.x(), location.y());
     }
 
+    public void position(double x, double y) {
+        position.set(x, y);
+    }
+
+    protected static Triple<Vector, Vector, UUID> beginUnpack(@NonNull MessageUnpacker unpacker) throws IOException {
+        return new ImmutableTriple<>(Vector.unpack(unpacker), Vector.unpack(unpacker), SerialUtil.unpackUUID(unpacker));
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (!(obj instanceof Entity other)) return false;
+        return this.uuid.equals(other.uuid);
+    }
 }

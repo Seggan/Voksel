@@ -23,16 +23,19 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import io.github.seggan.blockyworld.entity.Player;
 import io.github.seggan.blockyworld.util.MagicNumbers;
 import io.github.seggan.blockyworld.util.Position;
+import io.github.seggan.blockyworld.util.Vector;
 import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.World;
+import io.github.seggan.blockyworld.world.entity.Player;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -50,9 +53,10 @@ class MainScreen implements Screen {
     private final Renderer renderer;
 
     private final Player player;
+    private final Texture playerTex;
 
     private int SCREEN_OFFSET_X = 0;
-    private int SCREEN_OFFSET_Y = 0;
+    private int SCREEN_OFFSET_Y;
 
     private float delta = 0;
 
@@ -72,15 +76,35 @@ class MainScreen implements Screen {
         connection = BlockyWorld.connection();
 
         world = connection.requestWorld();
-        world.chunk(-1);
+        world.chunk(0);
 
         player = new Player();
         connection.connectPlayer(player);
+
+        player.position(0, world.highestBlockYAt(0) + 1);
+
+        Pixmap orig = new Pixmap(Gdx.files.internal("player.png"));
+        Pixmap newPix = new Pixmap(
+            MagicNumbers.WORLD_SCREEN_RATIO,
+            MagicNumbers.WORLD_SCREEN_RATIO * 2,
+            orig.getFormat()
+        );
+        newPix.drawPixmap(orig, 0, 0, orig.getWidth(), orig.getHeight(), 0, 0, newPix.getWidth(), newPix.getHeight());
+        playerTex = new Texture(newPix);
+
+        orig.dispose();
+        newPix.dispose();
     }
 
     public Position worldToScreen(@NonNull Position position) {
         int x = position.x() * MagicNumbers.WORLD_SCREEN_RATIO + SCREEN_OFFSET_X;
         int y = position.y() * MagicNumbers.WORLD_SCREEN_RATIO + SCREEN_OFFSET_Y;
+        return new Position(x, y);
+    }
+
+    public Position worldToScreen(@NonNull Vector location) {
+        int x = (int) location.x() * MagicNumbers.WORLD_SCREEN_RATIO + SCREEN_OFFSET_X;
+        int y = (int) location.y() * MagicNumbers.WORLD_SCREEN_RATIO + SCREEN_OFFSET_Y;
         return new Position(x, y);
     }
 
@@ -92,6 +116,9 @@ class MainScreen implements Screen {
     public void render(float delta) {
         ScreenUtils.clear(new Color(0x1EA1FFFF));
 
+        Position pos = worldToScreen(player.position());
+
+        camera.position.set((float) (pos.x() + (MagicNumbers.WORLD_SCREEN_RATIO / 2D)), pos.y() + MagicNumbers.WORLD_SCREEN_RATIO, 0);
         camera.update();
 
         batch.setProjectionMatrix(camera.combined);
@@ -99,6 +126,8 @@ class MainScreen implements Screen {
         for (Chunk chunk : world.chunks()) {
             renderer.render(chunk);
         }
+
+        batch.draw(playerTex, pos.x(), pos.y());
 
         font.draw(batch, "Speed: " + speed, 0, camera.viewportHeight);
         font.draw(batch, "X: " + -SCREEN_OFFSET_X / MagicNumbers.WORLD_SCREEN_RATIO, 0, camera.viewportHeight - 20);

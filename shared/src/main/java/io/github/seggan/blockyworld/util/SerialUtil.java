@@ -18,7 +18,6 @@
 
 package io.github.seggan.blockyworld.util;
 
-import com.badlogic.gdx.math.Vector2;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessageUnpacker;
 
@@ -38,15 +37,6 @@ public final class SerialUtil {
 
     public static UUID unpackUUID(@NonNull MessageUnpacker unpacker) throws IOException {
         return new UUID(unpacker.unpackLong(), unpacker.unpackLong());
-    }
-
-    public static void packVector(@NonNull MessageBufferPacker packer, @NonNull Vector2 vector) throws IOException {
-        packer.packFloat(vector.x);
-        packer.packFloat(vector.y);
-    }
-
-    public static Vector2 unpackVector(@NonNull MessageUnpacker unpacker) throws IOException {
-        return new Vector2(unpacker.unpackFloat(), unpacker.unpackFloat());
     }
 
 }

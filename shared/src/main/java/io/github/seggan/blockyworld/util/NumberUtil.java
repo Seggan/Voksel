@@ -24,15 +24,21 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public final class NumberUtil {
 
+    public static final double EPSILON = 1e-6;
+
     public static Position chunkToWorld(int chunkPos, @NonNull Position position) {
         return new Position(chunkPos * MagicNumbers.CHUNK_WIDTH + position.x(), position.y());
     }
 
-    public static Position worldToInChunk(@NonNull Position position) {
-        return new Position(position.x() % MagicNumbers.CHUNK_WIDTH, position.y());
+    public static int worldToInChunk(int x) {
+        return x % MagicNumbers.CHUNK_WIDTH;
     }
 
     public static int worldToChunk(int pos) {
         return pos / MagicNumbers.CHUNK_WIDTH;
+    }
+
+    public static boolean isDoubleZero(double d) {
+        return d >= -EPSILON && d <= EPSILON;
     }
 }

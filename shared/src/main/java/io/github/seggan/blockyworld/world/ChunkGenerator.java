@@ -62,7 +62,7 @@ public final class ChunkGenerator {
             float n2 = noise2.GetNoise(x + chunk.position() * MagicNumbers.CHUNK_WIDTH, 0);
             int height = Math.min((int) (50 + 50 + 20 * (n + n2)), 255);
             for (int y = 0; y < height; y++) {
-                chunk.setBlock(Material.STONE, x, y, null);
+                chunk.block(Material.STONE, x, y, null);
             }
         }
     }

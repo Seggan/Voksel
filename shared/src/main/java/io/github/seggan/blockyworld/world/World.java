@@ -20,11 +20,14 @@ package io.github.seggan.blockyworld.world;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import io.github.seggan.blockyworld.entity.Player;
+import io.github.seggan.blockyworld.util.MagicNumbers;
 import io.github.seggan.blockyworld.util.NumberUtil;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.util.SerialUtil;
 import io.github.seggan.blockyworld.world.block.Block;
+import io.github.seggan.blockyworld.world.block.Material;
+import io.github.seggan.blockyworld.world.entity.Entity;
+import io.github.seggan.blockyworld.world.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,6 +68,7 @@ public abstract class World {
     private final UUID uuid;
 
     private final Set<Player> players = Sets.newConcurrentHashSet();
+    private final Set<Entity> entities = Sets.newConcurrentHashSet();
 
     protected World(String name, UUID uuid) {
         this.name = name;
@@ -108,13 +112,39 @@ public abstract class World {
     public abstract Set<Chunk> chunks();
 
     @NotNull
-    public Block blockAt(@NonNull Position position) {
-        return chunk(NumberUtil.worldToChunk(position.x())).getBlock(NumberUtil.worldToInChunk(position));
+    public Block blockAt(int x, int y) {
+        return chunk(NumberUtil.worldToChunk(x)).block(NumberUtil.worldToInChunk(x), y);
     }
 
     @NotNull
-    public Block blockAt(int x, int y) {
-        return blockAt(new Position(x, y));
+    public Block blockAt(@NonNull Position position) {
+        return blockAt(position.x(), position.y());
+    }
+
+    public int highestBlockYAt(int x) {
+        Chunk chunk = chunk(NumberUtil.worldToChunk(x));
+        int inChunk = NumberUtil.worldToInChunk(x);
+        for (int y = MagicNumbers.CHUNK_HEIGHT; y >= 0; y--) {
+            if (chunk.block(inChunk, y).material() != Material.AIR) {
+                return y;
+            }
+        }
+
+        return 0;
+    }
+
+    @NotNull
+    public Block highestBlockAt(int x) {
+        Chunk chunk = chunk(NumberUtil.worldToChunk(x));
+        int inChunk = NumberUtil.worldToInChunk(x);
+        for (int y = MagicNumbers.CHUNK_HEIGHT; y >= 0; y--) {
+            Block b = chunk.block(inChunk, y);
+            if (b.material() != Material.AIR) {
+                return b;
+            }
+        }
+
+        return chunk.block(inChunk, 0);
     }
 
     public void addPlayer(@NonNull Player p) {
@@ -127,6 +157,18 @@ public abstract class World {
 
     public Set<Player> players() {
         return ImmutableSet.copyOf(players);
+    }
+
+    public void addEntity(@NonNull Entity p) {
+        entities.add(p);
+    }
+
+    public void removeEntity(@NonNull Entity p) {
+        entities.remove(p);
+    }
+
+    public Set<Entity> entities() {
+        return ImmutableSet.copyOf(entities);
     }
 
     public void pack(@NonNull MessageBufferPacker packer) throws IOException {

@@ -5,4 +5,7 @@ dependencies {
 	api project(':shared')
 
 	annotationProcessor 'org.projectlombok:lombok:1.18.20'
+
+	api "com.badlogicgames.gdx:gdx:$gdxVersion"
+	api "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
 }

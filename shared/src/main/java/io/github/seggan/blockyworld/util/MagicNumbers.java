@@ -18,8 +18,6 @@
 
 package io.github.seggan.blockyworld.util;
 
-import com.badlogic.gdx.math.Vector2;
-
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
@@ -30,5 +28,5 @@ public final class MagicNumbers {
     public static final int CHUNK_HEIGHT = 256;
     public static final int CHUNK_WIDTH = 16;
 
-    public static final Vector2 GRAVITY = new Vector2(0, -1);
+    public static final Vector GRAVITY = new Vector(0, -1);
 }

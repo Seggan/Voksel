@@ -22,7 +22,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Frustum;
-import com.badlogic.gdx.math.Rectangle;
 import io.github.seggan.blockyworld.util.MagicNumbers;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.world.Chunk;
@@ -50,7 +49,6 @@ public final class Renderer {
     }
 
     public void render(@NonNull Block block, int offset) {
-        Rectangle rectangle = new Rectangle(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         Material material = block.material();
         if (material == Material.AIR) return;
         if (!cache.containsKey(material)) {
