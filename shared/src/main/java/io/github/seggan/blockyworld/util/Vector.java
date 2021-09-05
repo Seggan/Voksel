@@ -92,9 +92,11 @@ public final class Vector {
 
     @NotNull
     public Vector divide(double d) {
-        synchronized (lock) {
-            this.x /= d;
-            this.y /= d;
+        if (d != 0) {
+            synchronized (lock) {
+                this.x /= d;
+                this.y /= d;
+            }
         }
 
         return this;
@@ -121,6 +123,13 @@ public final class Vector {
         // using another block to keep modification from happening while transferring data
         synchronized (lock) {
             return divide(magnitude());
+        }
+    }
+
+    @NotNull
+    public Vector copy() {
+        synchronized (lock) {
+            return new Vector(x, y);
         }
     }
 }

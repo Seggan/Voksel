@@ -16,19 +16,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.seggan.blockyworld.util;
+package io.github.seggan.blockyworld.server;
 
-import lombok.experimental.UtilityClass;
+import io.github.seggan.blockyworld.server.packets.Packet;
+import org.jetbrains.annotations.Nullable;
 
-@UtilityClass
-public final class MagicNumbers {
+import lombok.NonNull;
 
-    public static final int WORLD_SCREEN_RATIO = 16;
+import java.net.InetAddress;
 
-    public static final int CHUNK_HEIGHT = 256;
-    public static final int CHUNK_WIDTH = 16;
+public interface IServer {
 
-    public static final Vector GRAVITY = new Vector(0, -1);
+    void send(@NonNull Packet packet, @Nullable InetAddress sendTo);
 
-    public static final int PORT = 16255;
+    void stopThread(@NonNull InetAddress address);
+
+    boolean isTerminated();
+
+    MainThread mainThread();
 }

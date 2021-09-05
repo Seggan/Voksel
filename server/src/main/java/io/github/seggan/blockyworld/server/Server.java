@@ -19,6 +19,9 @@
 package io.github.seggan.blockyworld.server;
 
 import com.google.common.primitives.Bytes;
+import io.github.seggan.blockyworld.server.packets.OKPacket;
+import io.github.seggan.blockyworld.server.packets.Packet;
+import io.github.seggan.blockyworld.util.MagicNumbers;
 import org.jetbrains.annotations.Nullable;
 
 import lombok.Getter;
@@ -36,28 +39,33 @@ import java.util.Map;
 /**
  * Launches the server application.
  */
-public class Server {
+public class Server implements IServer {
 
-    public static final Map<InetAddress, ClientRecvThread> RECEIVING_THREADS = new HashMap<>();
-    public static final Map<InetAddress, ClientSendThread> SENDING_THREADS = new HashMap<>();
+    public final Map<InetAddress, ClientRecvThread> receivingThreads = new HashMap<>();
+    public final Map<InetAddress, ClientSendThread> sendingThreads = new HashMap<>();
 
     @Getter
-    private static MainThread mainThread;
+    private MainThread mainThread;
 
     public static void main(String[] args) throws IOException {
-        ServerSocket server = new ServerSocket(16255);
-        mainThread = new MainThread(server.getInetAddress());
+        Server server = new Server();
+        server.run();
+    }
+
+    private void run() throws IOException {
+        ServerSocket server = new ServerSocket(MagicNumbers.PORT);
+        mainThread = new MainThread(this);
         mainThread.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            for (ClientThread thread : RECEIVING_THREADS.values()) {
+            for (ClientThread thread : receivingThreads.values()) {
                 try {
                     thread.client.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
-            for (ClientThread thread : SENDING_THREADS.values()) {
+            for (ClientThread thread : sendingThreads.values()) {
                 try {
                     thread.client.close();
                 } catch (IOException e) {
@@ -81,27 +89,41 @@ public class Server {
             socket.getOutputStream().write(new OKPacket(server.getInetAddress()).serialize());
 
             InetAddress address = socket.getInetAddress();
-            ClientRecvThread thread = new ClientRecvThread(socket);
-            RECEIVING_THREADS.put(address, thread);
+            ClientRecvThread thread = new ClientRecvThread(socket, this);
+            receivingThreads.put(address, thread);
             thread.start();
             ClientSendThread thread1 = new ClientSendThread(socket);
-            SENDING_THREADS.put(address, thread1);
+            sendingThreads.put(address, thread1);
             thread1.start();
         }
     }
 
+    @Override
     @SneakyThrows(IOException.class)
-    public static void send(@NonNull Packet packet, @Nullable InetAddress sendTo) {
+    public void send(@NonNull Packet packet, @Nullable InetAddress sendTo) {
         byte[] bytes = packet.serialize();
         if (sendTo == null) {
-            for (ClientSendThread thread : SENDING_THREADS.values()) {
+            for (ClientSendThread thread : sendingThreads.values()) {
                 thread.send(bytes);
             }
         } else {
-            ClientSendThread thread = SENDING_THREADS.get(sendTo);
+            ClientSendThread thread = sendingThreads.get(sendTo);
             if (thread != null) {
                 thread.send(bytes);
             }
         }
+    }
+
+    @Override
+    public void stopThread(@NonNull InetAddress address) {
+        ClientSendThread thr = sendingThreads.get(address);
+        thr.stopThread();
+        sendingThreads.remove(address);
+        receivingThreads.remove(address);
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return false;
     }
 }

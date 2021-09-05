@@ -16,9 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.seggan.blockyworld.server;
+package io.github.seggan.blockyworld.server.packets;
 
 import io.github.seggan.blockyworld.util.SerialUtil;
+import io.github.seggan.blockyworld.util.Vector;
 import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.World;
 import io.github.seggan.blockyworld.world.entity.Player;
@@ -75,6 +76,13 @@ public enum PacketType {
         @Override
         public Packet unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException {
             return new PlayerPacket(Player.unpack(unpacker), address);
+        }
+    },
+    ENTITY_MOVE(0x06, false) {
+        @NotNull
+        @Override
+        public Packet unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException {
+            return new EntityMovePacket(SerialUtil.unpackUUID(unpacker), Vector.unpack(unpacker), address);
         }
     };
 

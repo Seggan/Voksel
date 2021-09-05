@@ -18,11 +18,19 @@
 
 package io.github.seggan.blockyworld.server;
 
+import io.github.seggan.blockyworld.server.packets.ChunkPacket;
+import io.github.seggan.blockyworld.server.packets.EntityMovePacket;
+import io.github.seggan.blockyworld.server.packets.OKPacket;
+import io.github.seggan.blockyworld.server.packets.Packet;
+import io.github.seggan.blockyworld.server.packets.PlayerPacket;
+import io.github.seggan.blockyworld.server.packets.WorldPacket;
 import io.github.seggan.blockyworld.world.ServerWorld;
+import io.github.seggan.blockyworld.world.entity.Entity;
 
 import lombok.NonNull;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -32,19 +40,20 @@ public class MainThread extends Thread {
 
     private final ServerWorld world = new ServerWorld("world");
 
-    private final InetAddress thisAddress;
+    private final InetAddress thisAddress = InetAddress.getLocalHost();
     private final OKPacket okPacket;
+    private final IServer server;
 
-    public MainThread(InetAddress thisAddress) {
+    public MainThread(IServer server) throws UnknownHostException {
         super("Main Server Thread");
-        this.thisAddress = thisAddress;
-        this.okPacket = new OKPacket(thisAddress);
+        this.okPacket = new OKPacket(this.thisAddress);
+        this.server = server;
         setDaemon(true);
     }
 
     @Override
     public void run() {
-        while (true) {
+        while (!server.isTerminated()) {
             Packet packet;
             try {
                 packet = pending.take();
@@ -53,13 +62,18 @@ public class MainThread extends Thread {
             }
             if (packet instanceof ChunkPacket chunkPacket) {
                 ChunkPacket back = new ChunkPacket(world.chunk(chunkPacket.position()), thisAddress);
-                Server.send(back, chunkPacket.address());
+                server.send(back, chunkPacket.address());
             } else if (packet instanceof WorldPacket worldPacket) {
                 WorldPacket back = new WorldPacket(world, thisAddress);
-                Server.send(back, worldPacket.address());
+                server.send(back, worldPacket.address());
             } else if (packet instanceof PlayerPacket playerPacket) {
                 world.addPlayer(playerPacket.player());
-                Server.send(okPacket, playerPacket.address());
+                server.send(okPacket, playerPacket.address());
+            } else if (packet instanceof EntityMovePacket entityMovePacket) {
+                Entity e = world.entity(entityMovePacket.uuid());
+                e.direction().add(entityMovePacket.vector());
+                server.send(okPacket, entityMovePacket.address());
+                server.send(new EntityMovePacket(e.uuid(), e.direction(), thisAddress), null);
             }
         }
     }

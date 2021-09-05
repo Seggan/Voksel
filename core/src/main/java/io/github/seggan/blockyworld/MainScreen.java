@@ -30,6 +30,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import io.github.seggan.blockyworld.server.packets.EntityMovePacket;
+import io.github.seggan.blockyworld.server.packets.Packet;
 import io.github.seggan.blockyworld.util.MagicNumbers;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.util.Vector;
@@ -54,15 +56,11 @@ class MainScreen implements Screen {
 
     private final Player player;
     private final Texture playerTex;
-
+    private final BitmapFont font = new BitmapFont();
     private int SCREEN_OFFSET_X = 0;
     private int SCREEN_OFFSET_Y;
-
     private float delta = 0;
-
     private int speed = 1;
-
-    private final BitmapFont font = new BitmapFont();
 
     MainScreen() {
         inst = this;
@@ -94,6 +92,11 @@ class MainScreen implements Screen {
 
         orig.dispose();
         newPix.dispose();
+
+        Position pos = worldToScreen(player.position());
+
+        camera.position.set((float) (pos.x() + (MagicNumbers.WORLD_SCREEN_RATIO / 2D)), pos.y() + MagicNumbers.WORLD_SCREEN_RATIO, 0);
+        camera.update();
     }
 
     public Position worldToScreen(@NonNull Position position) {
@@ -114,11 +117,11 @@ class MainScreen implements Screen {
 
     @Override
     public void render(float delta) {
+        doStuff();
+
         ScreenUtils.clear(new Color(0x1EA1FFFF));
 
         Position pos = worldToScreen(player.position());
-
-        camera.position.set((float) (pos.x() + (MagicNumbers.WORLD_SCREEN_RATIO / 2D)), pos.y() + MagicNumbers.WORLD_SCREEN_RATIO, 0);
         camera.update();
 
         batch.setProjectionMatrix(camera.combined);
@@ -134,25 +137,22 @@ class MainScreen implements Screen {
         font.draw(batch, "Y: " + -SCREEN_OFFSET_Y / MagicNumbers.WORLD_SCREEN_RATIO, 0, camera.viewportHeight - 40);
         batch.end();
 
-        if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-            SCREEN_OFFSET_Y -= speed;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-            SCREEN_OFFSET_Y += speed;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-            SCREEN_OFFSET_X -= speed;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-            SCREEN_OFFSET_X += speed;
+        if (player.direction().magnitudeSquared() < 1) {
+            if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
+                player.direction().add(new Vector(0, 1)).normalize();
+            }
+            if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
+                player.direction().add(new Vector(0, -1)).normalize();
+            }
+            if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+                player.direction().add(new Vector(0, 1)).normalize();
+            }
+            if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+                player.direction().add(new Vector(0, -1)).normalize();
+            }
         }
 
-        if (Gdx.input.isKeyPressed(Input.Keys.EQUALS)) {
-            speed++;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.MINUS)) {
-            speed--;
-        }
+        player.position().add(player.direction().copy().divide(delta));
 
         this.delta += delta;
         if (this.delta > 1 / 20f) {
@@ -199,6 +199,14 @@ class MainScreen implements Screen {
                     System.out.println("Loaded chunk " + pos);
                 }
             }
+        }
+    }
+
+    private void doStuff() {
+        Packet packet = connection.nextReceived();
+        if (packet instanceof EntityMovePacket movePacket && movePacket.uuid().equals(player.uuid())) {
+            Vector v = movePacket.vector();
+            player.direction().set(v.x(), v.y());
         }
     }
 }

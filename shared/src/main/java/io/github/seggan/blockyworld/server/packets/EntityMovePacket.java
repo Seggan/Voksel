@@ -16,9 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.seggan.blockyworld.server;
+package io.github.seggan.blockyworld.server.packets;
 
-import io.github.seggan.blockyworld.world.entity.Player;
+import io.github.seggan.blockyworld.util.SerialUtil;
+import io.github.seggan.blockyworld.util.Vector;
 import org.msgpack.core.MessageBufferPacker;
 
 import lombok.Getter;
@@ -26,19 +27,27 @@ import lombok.NonNull;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.UUID;
 
 @Getter
-public final class PlayerPacket extends Packet {
+public final class EntityMovePacket extends Packet {
 
-    private final Player player;
+    private final UUID uuid;
+    private final Vector vector;
 
-    public PlayerPacket(@NonNull Player player, @NonNull InetAddress address) {
-        super(PacketType.PLAYER_CONNECT, true, address);
-        this.player = player;
+    /**
+     * @param uuid the {@link UUID} of tthe entity that moved
+     * @param address the address of the creator of the request
+     */
+    public EntityMovePacket(@NonNull UUID uuid, @NonNull Vector vector, @NonNull InetAddress address) {
+        super(PacketType.ENTITY_MOVE, true, address);
+        this.uuid = uuid;
+        this.vector = vector;
     }
 
     @Override
     protected void pack(@NonNull MessageBufferPacker packer) throws IOException {
-        player.pack(packer);
+        SerialUtil.packUUID(packer, uuid);
+        vector.pack(packer);
     }
 }

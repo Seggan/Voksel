@@ -16,19 +16,29 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.seggan.blockyworld.util;
+package io.github.seggan.blockyworld.server.packets;
 
-import lombok.experimental.UtilityClass;
+import io.github.seggan.blockyworld.world.entity.Player;
+import org.msgpack.core.MessageBufferPacker;
 
-@UtilityClass
-public final class MagicNumbers {
+import lombok.Getter;
+import lombok.NonNull;
 
-    public static final int WORLD_SCREEN_RATIO = 16;
+import java.io.IOException;
+import java.net.InetAddress;
 
-    public static final int CHUNK_HEIGHT = 256;
-    public static final int CHUNK_WIDTH = 16;
+@Getter
+public final class PlayerPacket extends Packet {
 
-    public static final Vector GRAVITY = new Vector(0, -1);
+    private final Player player;
 
-    public static final int PORT = 16255;
+    public PlayerPacket(@NonNull Player player, @NonNull InetAddress address) {
+        super(PacketType.PLAYER_CONNECT, true, address);
+        this.player = player;
+    }
+
+    @Override
+    protected void pack(@NonNull MessageBufferPacker packer) throws IOException {
+        player.pack(packer);
+    }
 }

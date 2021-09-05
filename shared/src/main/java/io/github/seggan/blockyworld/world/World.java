@@ -19,7 +19,6 @@
 package io.github.seggan.blockyworld.world;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import io.github.seggan.blockyworld.util.MagicNumbers;
 import io.github.seggan.blockyworld.util.NumberUtil;
 import io.github.seggan.blockyworld.util.Position;
@@ -67,8 +66,8 @@ public abstract class World {
     private final String name;
     private final UUID uuid;
 
-    private final Set<Player> players = Sets.newConcurrentHashSet();
-    private final Set<Entity> entities = Sets.newConcurrentHashSet();
+    private final Map<UUID, Player> players = new ConcurrentHashMap<>();
+    private final Map<UUID, Entity> entities = new ConcurrentHashMap<>();
 
     protected World(String name, UUID uuid) {
         this.name = name;
@@ -148,27 +147,39 @@ public abstract class World {
     }
 
     public void addPlayer(@NonNull Player p) {
-        players.add(p);
+        players.put(p.uuid(), p);
+        entities.put(p.uuid(), p);
     }
 
     public void removePlayer(@NonNull Player p) {
-        players.remove(p);
+        players.remove(p.uuid());
+        entities.remove(p.uuid());
+    }
+
+    @Nullable
+    public Player player(@NonNull UUID uuid) {
+        return players.get(uuid);
     }
 
     public Set<Player> players() {
-        return ImmutableSet.copyOf(players);
+        return ImmutableSet.copyOf(players.values());
     }
 
-    public void addEntity(@NonNull Entity p) {
-        entities.add(p);
+    public void addEntity(@NonNull Entity e) {
+        entities.put(e.uuid(), e);
     }
 
-    public void removeEntity(@NonNull Entity p) {
-        entities.remove(p);
+    public void removeEntity(@NonNull Entity e) {
+        entities.remove(e.uuid());
+    }
+
+    @Nullable
+    public Entity entity(@NonNull UUID uuid) {
+        return entities.get(uuid);
     }
 
     public Set<Entity> entities() {
-        return ImmutableSet.copyOf(entities);
+        return ImmutableSet.copyOf(entities.values());
     }
 
     public void pack(@NonNull MessageBufferPacker packer) throws IOException {

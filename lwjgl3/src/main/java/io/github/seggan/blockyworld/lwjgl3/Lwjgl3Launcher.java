@@ -21,19 +21,40 @@ package io.github.seggan.blockyworld.lwjgl3;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import io.github.seggan.blockyworld.BlockyWorld;
+import io.github.seggan.blockyworld.util.MagicNumbers;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.net.DatagramSocket;
+import java.net.ServerSocket;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Launches the desktop (LWJGL3) application.
  */
 public class Lwjgl3Launcher {
 
-    public static void main(String[] args) throws FileNotFoundException {
+    public static void main(String[] args) throws IOException, InterruptedException {
 		PrintStream out = new PrintStream("log.txt");
 		//System.setOut(out);
 		//System.setErr(out);
+        BlockingQueue<Object> queue = new LinkedBlockingQueue<>();
+        if (available(MagicNumbers.PORT)) {
+            new Thread(() -> {
+                try {
+                    new ClientServerImpl(queue);
+                } catch (IOException | InterruptedException e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+            }).start();
+        } else {
+            queue.add(new Object());
+        }
+
+        queue.take();
+
         createApplication();
     }
 
@@ -47,5 +68,37 @@ public class Lwjgl3Launcher {
         configuration.setWindowedMode(600, 600);
         configuration.setWindowIcon("libgdx128.png", "libgdx64.png", "libgdx32.png", "libgdx16.png");
         return configuration;
+    }
+
+    /**
+     * Checks to see if a specific port is available.
+     *
+     * @param port the port to check for availability
+     */
+    private static boolean available(int port) {
+        ServerSocket ss = null;
+        DatagramSocket ds = null;
+        try {
+            ss = new ServerSocket(port);
+            ss.setReuseAddress(true);
+            ds = new DatagramSocket(port);
+            ds.setReuseAddress(true);
+            return true;
+        } catch (IOException ignored) {
+        } finally {
+            if (ds != null) {
+                ds.close();
+            }
+
+            if (ss != null) {
+                try {
+                    ss.close();
+                } catch (IOException e) {
+                    /* should not be thrown */
+                }
+            }
+        }
+
+        return false;
     }
 }

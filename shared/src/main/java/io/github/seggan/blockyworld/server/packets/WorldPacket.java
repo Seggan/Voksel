@@ -16,22 +16,40 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.seggan.blockyworld.server;
+package io.github.seggan.blockyworld.server.packets;
 
+import io.github.seggan.blockyworld.world.World;
 import org.msgpack.core.MessageBufferPacker;
 
+import lombok.Getter;
 import lombok.NonNull;
 
 import java.io.IOException;
 import java.net.InetAddress;
 
-public final class OKPacket extends Packet {
+@Getter
+public final class WorldPacket extends Packet {
 
-    public OKPacket(@NonNull InetAddress address) {
-        super(PacketType.OK, true, address);
+    private final World world;
+
+    /**
+     * @param world a world
+     * @param address the address of the creator of the request
+     */
+    public WorldPacket(@NonNull World world, @NonNull InetAddress address) {
+        super(PacketType.REQUEST_WORLD, true, address);
+        this.world = world;
+    }
+
+    public WorldPacket(@NonNull InetAddress address) {
+        super(PacketType.REQUEST_WORLD, false, address);
+        this.world = null;
     }
 
     @Override
     protected void pack(@NonNull MessageBufferPacker packer) throws IOException {
+        if (server()) {
+            world.pack(packer);
+        }
     }
 }

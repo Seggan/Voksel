@@ -18,6 +18,8 @@
 
 package io.github.seggan.blockyworld.server;
 
+import io.github.seggan.blockyworld.server.packets.Packet;
+import io.github.seggan.blockyworld.server.packets.PacketType;
 import org.msgpack.core.MessagePack;
 
 import lombok.SneakyThrows;
@@ -31,9 +33,11 @@ import java.nio.ByteBuffer;
 public class ClientRecvThread extends ClientThread {
 
     private static final int HEADER_SIZE = Short.BYTES + Integer.BYTES; // 6
+    private final IServer server;
 
-    public ClientRecvThread(Socket client) {
+    public ClientRecvThread(Socket client, IServer server) {
         super(client, "Receiving thread for " + client.getInetAddress().getHostAddress());
+        this.server = server;
     }
 
     @Override
@@ -56,11 +60,8 @@ public class ClientRecvThread extends ClientThread {
             int length = buffer.getInt();
             byte[] body = in.readNBytes(length);
             Packet packet = PacketType.getByCode(code).unpack(MessagePack.newDefaultUnpacker(body), false, client.getInetAddress());
-            Server.mainThread().addRequest(packet);
+            server.mainThread().addRequest(packet);
         }
-        ClientSendThread thr = Server.SENDING_THREADS.get(client.getInetAddress());
-        thr.stopThread();
-        Server.SENDING_THREADS.remove(client.getInetAddress());
-        Server.RECEIVING_THREADS.remove(client.getInetAddress());
+        server.stopThread(client.getInetAddress());
     }
 }
