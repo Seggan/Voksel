@@ -38,7 +38,7 @@ public class ClientWorld extends World {
     }
 
     @Override
-    public Chunk chunk(int pos) {
+    public Chunk chunkAt(int pos) {
         return chunks.computeIfAbsent(pos, p -> {
             Chunk c;
             do {

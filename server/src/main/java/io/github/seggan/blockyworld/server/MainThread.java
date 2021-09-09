@@ -27,13 +27,17 @@ import io.github.seggan.blockyworld.server.packets.WorldPacket;
 import io.github.seggan.blockyworld.world.ServerWorld;
 import io.github.seggan.blockyworld.world.entity.Entity;
 
+import lombok.Getter;
 import lombok.NonNull;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
+@Getter
 public class MainThread extends Thread {
 
     private final BlockingQueue<Packet> pending = new LinkedBlockingQueue<>();
@@ -53,6 +57,8 @@ public class MainThread extends Thread {
 
     @Override
     public void run() {
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
+        executor.scheduleAtFixedRate(new Ticker(this), 0, 50, TimeUnit.MILLISECONDS);
         while (!server.isTerminated()) {
             Packet packet;
             try {
@@ -61,7 +67,7 @@ public class MainThread extends Thread {
                 return;
             }
             if (packet instanceof ChunkPacket chunkPacket) {
-                ChunkPacket back = new ChunkPacket(world.chunk(chunkPacket.position()), thisAddress);
+                ChunkPacket back = new ChunkPacket(world.chunkAt(chunkPacket.position()), thisAddress);
                 server.send(back, chunkPacket.address());
             } else if (packet instanceof WorldPacket worldPacket) {
                 WorldPacket back = new WorldPacket(world, thisAddress);
@@ -76,6 +82,7 @@ public class MainThread extends Thread {
                 server.send(new EntityMovePacket(e.uuid(), e.direction(), thisAddress), null);
             }
         }
+        executor.shutdownNow();
     }
 
     public void addRequest(@NonNull Packet packet) {

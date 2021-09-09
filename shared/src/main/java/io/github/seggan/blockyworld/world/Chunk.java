@@ -52,15 +52,15 @@ public final class Chunk {
         generator.generateChunk(this);
     }
 
-    public void block(@NonNull Material material, int x, int y, @Nullable BlockData data) {
-        block(material, new Position(x, y), data);
+    public void blockAt(@NonNull Material material, int x, int y, @Nullable BlockData data) {
+        blockAt(material, new Position(x, y), data);
     }
 
-    public void block(@NonNull Material material, @NonNull Position position, @Nullable BlockData data) {
-        block(new Block(material, position, this, data));
+    public void blockAt(@NonNull Material material, @NonNull Position position, @Nullable BlockData data) {
+        blockAt(new Block(material, position, this, data));
     }
 
-    public void block(@NonNull Block block) {
+    public void blockAt(@NonNull Block block) {
         Position position = block.position();
         synchronized (blocks) {
             blocks[position.x()][position.y()] = block;
@@ -88,7 +88,7 @@ public final class Chunk {
     }
 
     @NotNull
-    public Block block(int x, int y) {
+    public Block blockAt(int x, int y) {
         if (x >= 0 && x < MagicNumbers.CHUNK_WIDTH && y >= 0 && y <= MagicNumbers.CHUNK_HEIGHT) {
             synchronized (blocks) {
                 Block b = blocks[x][y];
@@ -104,8 +104,8 @@ public final class Chunk {
     }
 
     @NotNull
-    public Block block(@NonNull Position position) {
-        return block(position.x(), position.y());
+    public Block blockAt(@NonNull Position position) {
+        return blockAt(position.x(), position.y());
     }
 
     public void pack(@NonNull MessageBufferPacker packer) throws IOException {
@@ -145,7 +145,7 @@ public final class Chunk {
                     if (!unpacker.tryUnpackNil()) {
                         data = BlockData.unpack(unpacker);
                     }
-                    chunk.block(material, pos, data);
+                    chunk.blockAt(material, pos, data);
                 }
             }
         }

@@ -43,7 +43,7 @@ public final class ServerWorld extends World {
     }
 
     @Override
-    public Chunk chunk(int pos) {
+    public Chunk chunkAt(int pos) {
         return chunks.computeIfAbsent(pos, i -> new Chunk(i, this));
     }
 

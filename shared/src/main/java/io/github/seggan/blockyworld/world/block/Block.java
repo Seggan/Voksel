@@ -19,8 +19,10 @@
 package io.github.seggan.blockyworld.world.block;
 
 import io.github.seggan.blockyworld.util.MagicNumbers;
+import io.github.seggan.blockyworld.util.NumberUtil;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.util.SerialUtil;
+import io.github.seggan.blockyworld.util.Vector;
 import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.World;
 import org.apache.commons.lang3.Validate;
@@ -44,13 +46,11 @@ public class Block {
     private final Position position;
     @Getter
     private final Chunk chunk;
-
-    private Material material;
     private final Object matLock = new Object();
-
+    private final Object bdLock = new Object();
+    private Material material;
     @Nullable
     private volatile BlockData blockData;
-    private final Object bdLock = new Object();
 
     public Block(@NonNull Material material, @NonNull Position position, @NonNull Chunk chunk, @Nullable BlockData data) {
         Validate.inclusiveBetween(0, MagicNumbers.CHUNK_WIDTH, position.x());
@@ -74,7 +74,7 @@ public class Block {
         Position pos = Position.unpack(unpacker);
         Material mat = Material.valueOf(unpacker.unpackString());
         World world = World.byUUID(SerialUtil.unpackUUID(unpacker));
-        Chunk chunk = world.chunk(unpacker.unpackInt());
+        Chunk chunk = world.chunkAt(unpacker.unpackInt());
         BlockData data = null;
         if (!unpacker.tryUnpackNil()) {
             data = BlockData.unpack(unpacker);
@@ -117,5 +117,16 @@ public class Block {
             this.blockData = blockData;
         }
         return this;
+    }
+
+    @NotNull
+    public Block relativeToThis(@NonNull BlockSide side) {
+        return relativeToThis(side.direction());
+    }
+
+    @NotNull
+    public Block relativeToThis(@NonNull Vector vector) {
+        Position rel = NumberUtil.chunkToWorld(chunk.position(), position);
+        return chunk.world().blockAt((int) (rel.x() + vector.x()), (int) (rel.y() + vector.y()));
     }
 }

@@ -119,6 +119,11 @@ public final class Vector {
     }
 
     @NotNull
+    public Vector zero() {
+        return set(0, 0);
+    }
+
+    @NotNull
     public Vector normalize() {
         // using another block to keep modification from happening while transferring data
         synchronized (lock) {
@@ -130,6 +135,13 @@ public final class Vector {
     public Vector copy() {
         synchronized (lock) {
             return new Vector(x, y);
+        }
+    }
+
+    @NotNull
+    public Position toPosition() {
+        synchronized (lock) {
+            return new Position((int) x, (int) y);
         }
     }
 }

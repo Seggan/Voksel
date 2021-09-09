@@ -23,6 +23,7 @@ import io.github.seggan.blockyworld.util.MagicNumbers;
 import io.github.seggan.blockyworld.util.NumberUtil;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.util.SerialUtil;
+import io.github.seggan.blockyworld.util.Vector;
 import io.github.seggan.blockyworld.world.block.Block;
 import io.github.seggan.blockyworld.world.block.Material;
 import io.github.seggan.blockyworld.world.entity.Entity;
@@ -102,7 +103,7 @@ public abstract class World {
         }
     }
 
-    public abstract Chunk chunk(int pos);
+    public abstract Chunk chunkAt(int pos);
 
     public abstract void removeChunk(int pos);
 
@@ -112,7 +113,7 @@ public abstract class World {
 
     @NotNull
     public Block blockAt(int x, int y) {
-        return chunk(NumberUtil.worldToChunk(x)).block(NumberUtil.worldToInChunk(x), y);
+        return chunkAt(NumberUtil.worldToChunk(x)).blockAt(NumberUtil.worldToInChunk(x), y);
     }
 
     @NotNull
@@ -120,11 +121,16 @@ public abstract class World {
         return blockAt(position.x(), position.y());
     }
 
+    @NotNull
+    public Block blockAt(@NonNull Vector vector) {
+        return blockAt((int) vector.x(), (int) vector.y());
+    }
+
     public int highestBlockYAt(int x) {
-        Chunk chunk = chunk(NumberUtil.worldToChunk(x));
+        Chunk chunk = chunkAt(NumberUtil.worldToChunk(x));
         int inChunk = NumberUtil.worldToInChunk(x);
         for (int y = MagicNumbers.CHUNK_HEIGHT; y >= 0; y--) {
-            if (chunk.block(inChunk, y).material() != Material.AIR) {
+            if (chunk.blockAt(inChunk, y).material() != Material.AIR) {
                 return y;
             }
         }
@@ -134,16 +140,16 @@ public abstract class World {
 
     @NotNull
     public Block highestBlockAt(int x) {
-        Chunk chunk = chunk(NumberUtil.worldToChunk(x));
+        Chunk chunk = chunkAt(NumberUtil.worldToChunk(x));
         int inChunk = NumberUtil.worldToInChunk(x);
         for (int y = MagicNumbers.CHUNK_HEIGHT; y >= 0; y--) {
-            Block b = chunk.block(inChunk, y);
+            Block b = chunk.blockAt(inChunk, y);
             if (b.material() != Material.AIR) {
                 return b;
             }
         }
 
-        return chunk.block(inChunk, 0);
+        return chunk.blockAt(inChunk, 0);
     }
 
     public void addPlayer(@NonNull Player p) {

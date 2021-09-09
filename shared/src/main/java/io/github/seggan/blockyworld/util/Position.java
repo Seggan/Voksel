@@ -18,6 +18,7 @@
 
 package io.github.seggan.blockyworld.util;
 
+import org.jetbrains.annotations.NotNull;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessageUnpacker;
 
@@ -42,15 +43,16 @@ public record Position(int x, int y) {
         packer.packInt(y);
     }
 
-    public long compress() {
-        return (long) x << 32 | y & 0xFFFFFFFFL;
-    }
-
     public int distanceSquared(@NonNull Position other) {
         return (other.y - y) * (other.y - y) + (other.x - x) * (other.x - x);
     }
 
     public double distanceTo(@NonNull Position other) {
         return Math.sqrt(distanceSquared(other));
+    }
+
+    @NotNull
+    public Vector toVector() {
+        return new Vector(x, y);
     }
 }

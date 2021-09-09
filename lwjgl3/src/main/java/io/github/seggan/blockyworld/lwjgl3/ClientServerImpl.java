@@ -18,7 +18,6 @@
 
 package io.github.seggan.blockyworld.lwjgl3;
 
-import com.google.common.primitives.Bytes;
 import io.github.seggan.blockyworld.server.ClientRecvThread;
 import io.github.seggan.blockyworld.server.ClientSendThread;
 import io.github.seggan.blockyworld.server.IServer;
@@ -34,56 +33,48 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingQueue;
 
 public class ClientServerImpl implements IServer {
 
-    private volatile ClientRecvThread recvThread = null;
-    private volatile ClientSendThread sendThread = null;
-    private volatile MainThread mainThread = null;
+    private final ClientRecvThread recvThread;
+    private final ClientSendThread sendThread;
+    private final MainThread mainThread;
 
     private volatile boolean terminated;
 
     public ClientServerImpl(BlockingQueue<Object> queue) throws IOException, InterruptedException {
         ServerSocket server = new ServerSocket(MagicNumbers.PORT);
-        Thread thread = new Thread(() -> {
-            try {
-                Socket socket = server.accept();
-                Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                    try {
-                        socket.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        System.exit(1);
-                    }
-                }));
-                short ver = ByteBuffer.wrap(socket.getInputStream().readNBytes(2)).getShort();
-                if (ver != Packet.PROTOCOL_VERSION) {
-                    // The invalid protocol packet: 00 03 packet,
-                    // 2 bytes protocol version
-                    socket.getOutputStream().write(Bytes.concat(new byte[]{0, 3},
-                        ByteBuffer.allocate(Short.BYTES).putShort(Packet.PROTOCOL_VERSION).array()));
+        queue.add(new Object());
+        try {
+            Socket socket = server.accept();
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
                     socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                     System.exit(1);
                 }
+            }));
 
-                socket.getOutputStream().write(new OKPacket(server.getInetAddress()).serialize());
+            // this is in integrated server; no need for protocol check
+            socket.getInputStream().readNBytes(2);
+            socket.getOutputStream().write(new OKPacket(server.getInetAddress()).serialize());
 
-                recvThread = new ClientRecvThread(socket, ClientServerImpl.this);
-                sendThread = new ClientSendThread(socket);
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
-        });
-        thread.start();
-        queue.add(new Object());
-        thread.join();
+            recvThread = new ClientRecvThread(socket, ClientServerImpl.this);
+            sendThread = new ClientSendThread(socket);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+            throw null;
+        }
         mainThread = new MainThread(this);
-        mainThread.start();
         sendThread.start();
         recvThread.start();
+        // we want it to run on the current thread
+        //noinspection CallToThreadRun
+        mainThread.run();
+        server.close();
     }
 
     @Override

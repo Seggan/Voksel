@@ -74,7 +74,7 @@ class MainScreen implements Screen {
         connection = BlockyWorld.connection();
 
         world = connection.requestWorld();
-        world.chunk(0);
+        world.chunkAt(0);
 
         player = new Player();
         connection.connectPlayer(player);
@@ -195,7 +195,7 @@ class MainScreen implements Screen {
             }
             for (int pos = chunkpos - onSides; pos <= chunkpos + onSides; pos++) {
                 if (!world.isChunkLoaded(pos)) {
-                    world.chunk(pos);
+                    world.chunkAt(pos);
                     System.out.println("Loaded chunk " + pos);
                 }
             }
