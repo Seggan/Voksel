@@ -64,7 +64,7 @@ public class MainThread extends Thread {
             try {
                 packet = pending.take();
             } catch (InterruptedException e) {
-                return;
+                break;
             }
             if (packet instanceof ChunkPacket chunkPacket) {
                 ChunkPacket back = new ChunkPacket(world.chunkAt(chunkPacket.position()), thisAddress);

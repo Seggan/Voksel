@@ -42,9 +42,10 @@ public class ClientServerImpl implements IServer {
     private final MainThread mainThread;
 
     private volatile boolean terminated;
+    private final ServerSocket server;
 
     public ClientServerImpl(BlockingQueue<Object> queue) throws IOException, InterruptedException {
-        ServerSocket server = new ServerSocket(MagicNumbers.PORT);
+        server = new ServerSocket(MagicNumbers.PORT);
         queue.add(new Object());
         try {
             Socket socket = server.accept();
@@ -71,10 +72,7 @@ public class ClientServerImpl implements IServer {
         mainThread = new MainThread(this);
         sendThread.start();
         recvThread.start();
-        // we want it to run on the current thread
-        //noinspection CallToThreadRun
-        mainThread.run();
-        server.close();
+        mainThread.start();
     }
 
     @Override
@@ -90,8 +88,15 @@ public class ClientServerImpl implements IServer {
     @Override
     public void stopThread(@NonNull InetAddress address) {
         terminated = true;
-        sendThread.stopThread();
-        recvThread.stopThread();
+        sendThread.interrupt();
+        recvThread.interrupt();
+        mainThread.interrupt();
+        try {
+            server.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     @Override

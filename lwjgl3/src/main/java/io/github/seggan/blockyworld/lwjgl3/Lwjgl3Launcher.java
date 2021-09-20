@@ -41,14 +41,19 @@ public class Lwjgl3Launcher {
 		//System.setErr(out);
         BlockingQueue<Object> queue = new LinkedBlockingQueue<>();
         if (available(MagicNumbers.PORT)) {
-            new Thread(() -> {
-                try {
-                    new ClientServerImpl(queue);
-                } catch (IOException | InterruptedException e) {
-                    e.printStackTrace();
-                    System.exit(1);
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        new ClientServerImpl(queue);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.exit(1);
+                    } catch (InterruptedException e) {
+                        System.exit(0);
+                    }
                 }
-            }).start();
+            }.start();
         } else {
             queue.add(new Object());
         }

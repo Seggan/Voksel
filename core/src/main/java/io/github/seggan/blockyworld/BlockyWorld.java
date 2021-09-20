@@ -24,6 +24,7 @@ import io.github.seggan.blockyworld.server.packets.PacketType;
 import io.github.seggan.blockyworld.util.MagicNumbers;
 
 import lombok.Getter;
+import lombok.SneakyThrows;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -36,23 +37,26 @@ public class BlockyWorld extends Game {
 
     @Getter
     private static Connection connection;
+    @Getter
+    private static Socket socket;
+    @Getter
+    private static MainScreen screen;
 
     @Override
     public void create() {
-        Socket soc;
         try {
-            soc = new Socket("localhost", MagicNumbers.PORT);
-            soc.getOutputStream().write(ByteBuffer.allocate(2).putShort(Packet.PROTOCOL_VERSION).array());
+            socket = new Socket("localhost", MagicNumbers.PORT);
+            socket.getOutputStream().write(ByteBuffer.allocate(2).putShort(Packet.PROTOCOL_VERSION).array());
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 try {
-                    soc.close();
+                    socket.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }));
-            short code = ByteBuffer.wrap(soc.getInputStream().readNBytes(2)).getShort();
+            short code = ByteBuffer.wrap(socket.getInputStream().readNBytes(2)).getShort();
             if (code == 3) {
-                short version = ByteBuffer.wrap(soc.getInputStream().readNBytes(Short.BYTES)).getShort();
+                short version = ByteBuffer.wrap(socket.getInputStream().readNBytes(Short.BYTES)).getShort();
                 System.err.println("Incompatible protocol version; server " + version + " client " + Packet.PROTOCOL_VERSION);
                 System.exit(0);
                 throw null;
@@ -61,7 +65,7 @@ public class BlockyWorld extends Game {
                 System.exit(1);
                 throw null;
             }
-            soc.getInputStream().skipNBytes(Integer.BYTES);
+            socket.getInputStream().skipNBytes(Integer.BYTES);
         } catch (IOException e) {
             System.err.println("Could not connect to server:");
             e.printStackTrace();
@@ -70,8 +74,16 @@ public class BlockyWorld extends Game {
             throw null;
         }
 
-        connection = new Connection(soc);
+        connection = new Connection(socket);
 
-        setScreen(new MainScreen());
+        screen = new MainScreen();
+        setScreen(screen);
+    }
+
+    @Override
+    @SneakyThrows(IOException.class)
+    public void dispose() {
+        screen.dispose();
+        BlockyWorld.socket().close();
     }
 }

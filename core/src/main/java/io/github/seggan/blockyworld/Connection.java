@@ -39,6 +39,7 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -68,7 +69,11 @@ public final class Connection {
             while (!socket.isInputShutdown()) {
                 try {
                     byte[] header;
-                    header = in.readNBytes(HEADER_SIZE);
+                    try {
+                        header = in.readNBytes(HEADER_SIZE);
+                    } catch (SocketException e) {
+                        break;
+                    }
                     ByteBuffer buffer = ByteBuffer.wrap(header);
                     short code = buffer.getShort();
                     int length = buffer.getInt();
