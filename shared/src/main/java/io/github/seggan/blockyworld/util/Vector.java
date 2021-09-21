@@ -18,8 +18,6 @@
 
 package io.github.seggan.blockyworld.util;
 
-import it.unimi.dsi.fastutil.doubles.DoubleDoubleImmutablePair;
-import it.unimi.dsi.fastutil.doubles.DoubleDoublePair;
 import org.jetbrains.annotations.NotNull;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessageUnpacker;
@@ -62,19 +60,20 @@ public final class Vector {
     }
 
     @NotNull
-    public DoubleDoublePair get() {
+    public Vector set(@NonNull Vector other) {
         synchronized (lock) {
-            //noinspection SuspiciousNameCombination
-            return new DoubleDoubleImmutablePair(x, y);
+            this.x = other.x;
+            this.y = other.y;
         }
+
+        return this;
     }
 
     @NotNull
     public Vector add(@NonNull Vector other) {
-        DoubleDoublePair pair = other.get();
         synchronized (lock) {
-            this.x += pair.leftDouble();
-            this.y += pair.rightDouble();
+            this.x += other.x;
+            this.y += other.y;
         }
 
         return this;

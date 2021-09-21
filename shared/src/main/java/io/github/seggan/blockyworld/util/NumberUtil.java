@@ -33,11 +33,15 @@ public final class NumberUtil {
     }
 
     public static int worldToInChunk(int x) {
+        if (x < 0) {
+            x += MagicNumbers.CHUNK_WIDTH - 1;
+        }
+
         return x % MagicNumbers.CHUNK_WIDTH;
     }
 
     public static int worldToChunk(int pos) {
-        return pos / MagicNumbers.CHUNK_WIDTH;
+        return pos / MagicNumbers.CHUNK_WIDTH + 1;
     }
 
     public static boolean isDoubleZero(double d) {
@@ -74,6 +78,10 @@ public final class NumberUtil {
         if (intersectSegments(x, y, vectorX, vectorY, bX, endY, endX, endY)) return true;
 
         return bX <= x && endX >= x && bY <= y && endY >= y;
+    }
+
+    public static boolean rectIntersect(double x1, double y1, double l1, double w1, double x2, double y2, double l2, double w2) {
+        return !(x2 > x1 + l1 || y2 > y1 + w1 || x1 > x2 + l2 || y1 > y2 + w2);
     }
 
 }

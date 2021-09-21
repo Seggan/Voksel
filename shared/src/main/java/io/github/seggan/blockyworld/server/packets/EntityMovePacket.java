@@ -36,7 +36,7 @@ public final class EntityMovePacket extends Packet {
     private final Vector vector;
 
     /**
-     * @param uuid the {@link UUID} of tthe entity that moved
+     * @param uuid the {@link UUID} of the entity that moved
      * @param address the address of the creator of the request
      */
     public EntityMovePacket(@NonNull UUID uuid, @NonNull Vector vector, @NonNull InetAddress address) {
