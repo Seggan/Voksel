@@ -129,4 +129,9 @@ public class Block {
         Position rel = NumberUtil.chunkToWorld(chunk.position(), position);
         return chunk.world().blockAt((int) (rel.x() + vector.x()), (int) (rel.y() + vector.y()));
     }
+
+    public boolean isPassable() {
+        Material material = material();
+        return material == Material.AIR;
+    }
 }

@@ -96,11 +96,13 @@ public final class Chunk {
             }
         }
 
-        throw new IndexOutOfBoundsException(String.format(
+        return new Block(Material.AIR, x, y, this, null);
+
+        /*throw new IndexOutOfBoundsException(String.format(
             "Chunk index out of bounds: %d, %d",
             x,
             y
-        ));
+        ));*/
     }
 
     @NotNull

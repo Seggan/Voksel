@@ -23,7 +23,6 @@ import io.github.seggan.blockyworld.util.MagicNumbers;
 import io.github.seggan.blockyworld.util.NumberUtil;
 import io.github.seggan.blockyworld.util.Vector;
 import io.github.seggan.blockyworld.world.ServerWorld;
-import io.github.seggan.blockyworld.world.block.Material;
 import io.github.seggan.blockyworld.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,15 +43,15 @@ public final class Ticker implements Runnable {
         this.world = mainThread.world();
         this.server = mainThread.server();
         this.thisAddress = mainThread.thisAddress();
-        this.time = System.currentTimeMillis();
+        this.time = System.nanoTime();
     }
 
 
     @Override
     public void run() {
         try {
-            long tempTime = System.currentTimeMillis();
-            double delta = 1_000D / (tempTime - time);
+            long tempTime = System.nanoTime();
+            double delta = (tempTime - time) / 1e9;
             time = tempTime;
             for (Entity entity : world.entities()) {
                 processEntity(entity, delta);
@@ -65,17 +64,26 @@ public final class Ticker implements Runnable {
 
     private void processEntity(@NotNull Entity entity, double delta) {
         Vector dir = entity.direction();
-        Vector deltaVector = dir.copy().multiply(delta);
-        Vector newPos = entity.position().copy().add(deltaVector).add(MagicNumbers.GRAVITY);
+        Vector deltaGravity = MagicNumbers.GRAVITY.copy().multiply(delta);
+        Vector deltaVector = dir.copy().add(deltaGravity).multiply(delta);
+        Vector newPos = entity.position().copy().add(deltaVector);
         double newPosX = newPos.x();
         double newPosY = newPos.y();
-        long wholeX = (long) newPosX;
-        long wholeY = (long) newPosY;
+        int wholeX = (int) newPosX;
+        int wholeY = (int) newPosY;
 
-        for (int x = (int) (wholeX - 1); x <= wholeY + 1; x++) {
-            for (int y = (int) (wholeY + 1); y > wholeY - 3; y--) {
-                if (NumberUtil.rectIntersect(newPosX, newPosY, 1, 2, x, y, 1, 1) &&
-                    world.blockAt(x, y).material() != Material.AIR) {
+        for (int x = wholeX - 6; x < wholeX + 6; x++) {
+            for (int y = wholeY - 6; y < wholeY + 6; y++) {
+                if (!world.blockAt(x, y).isPassable() && NumberUtil.rectIntersect(
+                    newPosX + 0.6,
+                    newPosY + 1,
+                    0.9,
+                    2,
+                    x,
+                    y,
+                    1,
+                    1
+                )) {
                     dir.zero();
                     return;
                 }
@@ -83,6 +91,7 @@ public final class Ticker implements Runnable {
         }
 
         entity.position().set(newPos);
+        dir.add(deltaGravity);
         server.send(new EntityMovePacket(entity.uuid(), newPos, thisAddress), null);
     }
 

@@ -23,18 +23,24 @@ import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessageUnpacker;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.Synchronized;
+import lombok.ToString;
 
 import java.io.IOException;
 
+@ToString
+@EqualsAndHashCode
+@AllArgsConstructor
 @Getter(onMethod_ = @Synchronized("lock"))
 @Setter(onMethod_ = @Synchronized("lock"))
-@AllArgsConstructor
 public final class Vector {
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private final Object lock = new Object();
 
     private double x;
