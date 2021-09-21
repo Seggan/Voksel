@@ -16,34 +16,37 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.seggan.blockyworld.world.entity;
+package io.github.seggan.blockyworld.server.packets;
 
+import io.github.seggan.blockyworld.util.SerialUtil;
 import io.github.seggan.blockyworld.util.Vector;
-import org.apache.commons.lang3.tuple.Triple;
-import org.msgpack.core.MessageUnpacker;
+import org.msgpack.core.MessageBufferPacker;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Synchronized;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.UUID;
 
-public final class Player extends Entity {
+@Getter
+public final class UserMovePacket extends Packet {
 
-    @Getter(onMethod_ = @Synchronized)
-    private final Vector moving = new Vector(0, 0);
+    private final Vector vector;
+    private final UUID uuid;
 
-    public Player() {
-        this(new Vector(0, 0), new Vector(0, 0), UUID.randomUUID());
+    /**
+     * @param address the address of the creator of the request
+     */
+    public UserMovePacket(@NonNull Vector vector, @NonNull UUID uuid, @NonNull InetAddress address) {
+        super(PacketType.USER_MOVE, false, address);
+        this.vector = vector;
+        this.uuid = uuid;
     }
 
-    private Player(@NonNull Vector Vector, @NonNull Vector direction, @NonNull UUID uuid) {
-        super(Vector, direction, uuid);
-    }
-
-    public static Player unpack(@NonNull MessageUnpacker unpacker) throws IOException {
-        Triple<Vector, Vector, UUID> dat = beginUnpack(unpacker);
-        return new Player(dat.getLeft(), dat.getMiddle(), dat.getRight());
+    @Override
+    protected void pack(@NonNull MessageBufferPacker packer) throws IOException {
+        vector.pack(packer);
+        SerialUtil.packUUID(packer, uuid);
     }
 }

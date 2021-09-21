@@ -144,19 +144,14 @@ class MainScreen implements Screen {
         font.draw(batch, "Y: " + -SCREEN_OFFSET_Y / MagicNumbers.WORLD_SCREEN_RATIO, 0, camera.viewportHeight - 40);
         batch.end();
 
-        if (player.direction().magnitudeSquared() < 1) {
-            if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-                player.direction().add(new Vector(0, 1)).normalize();
-            }
-            if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-                player.direction().add(new Vector(0, -1)).normalize();
-            }
-            if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-                player.direction().add(new Vector(0, 1)).normalize();
-            }
-            if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-                player.direction().add(new Vector(0, -1)).normalize();
-            }
+        if (Gdx.input.isKeyPressed(Input.Keys.SPACE) || Gdx.input.isKeyPressed(Input.Keys.W)) {
+            connection.sendPlayerMove(player, new Vector(0, 1));
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+            connection.sendPlayerMove(player, new Vector(4, 0));
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+            connection.sendPlayerMove(player, new Vector(-4, 0));
         }
 
         this.delta += delta;

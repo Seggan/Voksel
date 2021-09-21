@@ -63,7 +63,7 @@ public enum PacketType {
         }
     },
     /*
-        0x03 is reserved for the invalid protocol packet
+     *  0x03 is reserved for the invalid protocol packet
      */
     OK(0x04, true) {
         @Override
@@ -83,6 +83,13 @@ public enum PacketType {
         @Override
         public Packet unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException {
             return new EntityMovePacket(SerialUtil.unpackUUID(unpacker), Vector.unpack(unpacker), address);
+        }
+    },
+    USER_MOVE(0x07, true) {
+        @NotNull
+        @Override
+        public Packet unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException {
+            return new UserMovePacket(Vector.unpack(unpacker), SerialUtil.unpackUUID(unpacker), address);
         }
     };
 

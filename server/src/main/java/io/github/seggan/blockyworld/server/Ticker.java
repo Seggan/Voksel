@@ -24,6 +24,7 @@ import io.github.seggan.blockyworld.util.NumberUtil;
 import io.github.seggan.blockyworld.util.Vector;
 import io.github.seggan.blockyworld.world.ServerWorld;
 import io.github.seggan.blockyworld.world.entity.Entity;
+import io.github.seggan.blockyworld.world.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import lombok.NonNull;
@@ -31,6 +32,8 @@ import lombok.NonNull;
 import java.net.InetAddress;
 
 public final class Ticker implements Runnable {
+
+    private static final Vector MOVE_INCL = new Vector(0, 0.5);
 
     private final MainThread mainThread;
     private final ServerWorld world;
@@ -65,7 +68,15 @@ public final class Ticker implements Runnable {
     private void processEntity(@NotNull Entity entity, double delta) {
         Vector dir = entity.direction();
         Vector deltaGravity = MagicNumbers.GRAVITY.copy().multiply(delta);
-        Vector deltaVector = dir.copy().add(deltaGravity).multiply(delta);
+        Vector deltaVector = dir.copy().add(deltaGravity);
+        if (entity instanceof Player player) {
+            Vector moving = player.moving();
+            if (!moving.isZero()) {
+                deltaVector.add(moving.add(MOVE_INCL));
+                moving.zero();
+            }
+        }
+        deltaVector.multiply(delta);
         Vector newPos = entity.position().copy().add(deltaVector);
         double newPosX = newPos.x();
         double newPosY = newPos.y();
@@ -89,6 +100,8 @@ public final class Ticker implements Runnable {
                 }
             }
         }
+
+        entity.gravity(true);
 
         entity.position().set(newPos);
         dir.add(deltaGravity);

@@ -29,6 +29,7 @@ import org.msgpack.core.MessageUnpacker;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -39,6 +40,9 @@ public abstract class Entity {
     private final Vector position;
     private final Vector direction;
     private final UUID uuid;
+
+    @Setter
+    private boolean gravity = true;
 
     protected Entity(@NonNull Vector position, @NonNull Vector direction, @NonNull UUID uuid) {
         this.position = position;

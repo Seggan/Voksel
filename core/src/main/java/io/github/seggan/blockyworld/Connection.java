@@ -19,12 +19,13 @@
 package io.github.seggan.blockyworld;
 
 import io.github.seggan.blockyworld.server.packets.ChunkPacket;
-import io.github.seggan.blockyworld.server.packets.EntityMovePacket;
 import io.github.seggan.blockyworld.server.packets.OKPacket;
 import io.github.seggan.blockyworld.server.packets.Packet;
 import io.github.seggan.blockyworld.server.packets.PacketType;
 import io.github.seggan.blockyworld.server.packets.PlayerPacket;
+import io.github.seggan.blockyworld.server.packets.UserMovePacket;
 import io.github.seggan.blockyworld.server.packets.WorldPacket;
+import io.github.seggan.blockyworld.util.Vector;
 import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.World;
 import io.github.seggan.blockyworld.world.entity.Player;
@@ -130,8 +131,8 @@ public final class Connection {
         return packet.chunk();
     }
 
-    public void sendPlayerMove(@NonNull Player player) {
-        sendPacket(new EntityMovePacket(player.uuid(), player.direction(), address), null);
+    public void sendPlayerMove(@NonNull Player player, @NonNull Vector vector) {
+        sendPacket(new UserMovePacket(vector, player.uuid(), address), null);
     }
 
     public void connectPlayer(@NonNull Player player) {

@@ -23,9 +23,11 @@ import io.github.seggan.blockyworld.server.packets.EntityMovePacket;
 import io.github.seggan.blockyworld.server.packets.OKPacket;
 import io.github.seggan.blockyworld.server.packets.Packet;
 import io.github.seggan.blockyworld.server.packets.PlayerPacket;
+import io.github.seggan.blockyworld.server.packets.UserMovePacket;
 import io.github.seggan.blockyworld.server.packets.WorldPacket;
 import io.github.seggan.blockyworld.world.ServerWorld;
 import io.github.seggan.blockyworld.world.entity.Entity;
+import io.github.seggan.blockyworld.world.entity.Player;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -66,20 +68,26 @@ public class MainThread extends Thread {
             } catch (InterruptedException e) {
                 break;
             }
+
+            InetAddress sourceAddress = packet.address();
             if (packet instanceof ChunkPacket chunkPacket) {
                 ChunkPacket back = new ChunkPacket(world.chunkAt(chunkPacket.position()), thisAddress);
-                server.send(back, chunkPacket.address());
+                server.send(back, sourceAddress);
             } else if (packet instanceof WorldPacket worldPacket) {
                 WorldPacket back = new WorldPacket(world, thisAddress);
-                server.send(back, worldPacket.address());
+                server.send(back, sourceAddress);
             } else if (packet instanceof PlayerPacket playerPacket) {
                 world.addPlayer(playerPacket.player());
-                server.send(okPacket, playerPacket.address());
+                server.send(okPacket, sourceAddress);
             } else if (packet instanceof EntityMovePacket entityMovePacket) {
                 Entity e = world.entity(entityMovePacket.uuid());
                 e.direction().add(entityMovePacket.vector());
-                server.send(okPacket, entityMovePacket.address());
+                server.send(okPacket, sourceAddress);
                 server.send(new EntityMovePacket(e.uuid(), e.direction(), thisAddress), null);
+            } else if (packet instanceof UserMovePacket userMovePacket) {
+                Player p = world.player(userMovePacket.uuid());
+                p.moving().add(userMovePacket.vector());
+                server.send(okPacket, sourceAddress);
             }
         }
         executor.shutdownNow();
