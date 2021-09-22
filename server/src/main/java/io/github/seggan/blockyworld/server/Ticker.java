@@ -33,7 +33,7 @@ import java.net.InetAddress;
 
 public final class Ticker implements Runnable {
 
-    private static final Vector MOVE_INCL = new Vector(0, 0.5);
+    private static final Vector MOVE_INCL = new Vector(0, 1);
 
     private final MainThread mainThread;
     private final ServerWorld world;
@@ -100,8 +100,6 @@ public final class Ticker implements Runnable {
                 }
             }
         }
-
-        entity.gravity(true);
 
         entity.position().set(newPos);
         dir.add(deltaGravity);

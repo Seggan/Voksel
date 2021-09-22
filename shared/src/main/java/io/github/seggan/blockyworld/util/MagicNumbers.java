@@ -28,7 +28,7 @@ public final class MagicNumbers {
     public static final int CHUNK_HEIGHT = 256;
     public static final int CHUNK_WIDTH = 16;
 
-    public static final Vector GRAVITY = new Vector(0, -3);
+    public static final Vector GRAVITY = new Vector(0, -8);
 
     public static final int PORT = 16255;
 }

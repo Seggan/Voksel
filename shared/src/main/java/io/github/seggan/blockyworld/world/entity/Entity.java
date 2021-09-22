@@ -19,7 +19,6 @@
 package io.github.seggan.blockyworld.world.entity;
 
 import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper;
-import io.github.seggan.blockyworld.util.MagicNumbers;
 import io.github.seggan.blockyworld.util.SerialUtil;
 import io.github.seggan.blockyworld.util.Vector;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -29,7 +28,6 @@ import org.msgpack.core.MessageUnpacker;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -41,17 +39,10 @@ public abstract class Entity {
     private final Vector direction;
     private final UUID uuid;
 
-    @Setter
-    private boolean gravity = true;
-
     protected Entity(@NonNull Vector position, @NonNull Vector direction, @NonNull UUID uuid) {
         this.position = position;
         this.direction = direction;
         this.uuid = uuid;
-    }
-
-    public void applyGravity() {
-        direction.add(MagicNumbers.GRAVITY);
     }
 
     @OverridingMethodsMustInvokeSuper

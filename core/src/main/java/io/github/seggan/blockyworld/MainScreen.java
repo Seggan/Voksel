@@ -139,13 +139,8 @@ class MainScreen implements Screen {
 
         batch.draw(playerTex, x, y);
 
-        font.draw(batch, "Speed: " + speed, 0, camera.viewportHeight);
-        font.draw(batch, "X: " + -0 / MagicNumbers.WORLD_SCREEN_RATIO, 0, camera.viewportHeight - 20);
-        font.draw(batch, "Y: " + -SCREEN_OFFSET_Y / MagicNumbers.WORLD_SCREEN_RATIO, 0, camera.viewportHeight - 40);
-        batch.end();
-
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE) || Gdx.input.isKeyPressed(Input.Keys.W)) {
-            connection.sendPlayerMove(player, new Vector(0, 1));
+            connection.sendPlayerMove(player, new Vector(0, 1.5));
         }
         if (Gdx.input.isKeyPressed(Input.Keys.D)) {
             connection.sendPlayerMove(player, new Vector(4, 0));
