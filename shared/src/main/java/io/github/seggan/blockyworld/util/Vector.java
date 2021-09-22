@@ -86,6 +86,16 @@ public final class Vector {
     }
 
     @NotNull
+    public Vector add(double x, double y) {
+        synchronized (lock) {
+            this.x += x;
+            this.y += y;
+        }
+
+        return this;
+    }
+
+    @NotNull
     public Vector multiply(double d) {
         synchronized (lock) {
             this.x *= d;

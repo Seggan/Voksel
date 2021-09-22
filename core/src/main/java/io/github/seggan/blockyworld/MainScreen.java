@@ -23,7 +23,6 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -62,6 +61,7 @@ class MainScreen implements Screen {
 
     private final Player player;
     private final Texture playerTex;
+    private final Texture selector;
     private final BitmapFont font = new BitmapFont();
     private int SCREEN_OFFSET_Y;
     private float delta = 0;
@@ -88,17 +88,8 @@ class MainScreen implements Screen {
 
         connection.connectPlayer(player);
 
-        Pixmap orig = new Pixmap(Gdx.files.internal("player.png"));
-        Pixmap newPix = new Pixmap(
-            MagicNumbers.WORLD_SCREEN_RATIO,
-            MagicNumbers.WORLD_SCREEN_RATIO * 2,
-            orig.getFormat()
-        );
-        newPix.drawPixmap(orig, 0, 0, orig.getWidth(), orig.getHeight(), 0, 0, newPix.getWidth(), newPix.getHeight());
-        playerTex = new Texture(newPix);
-
-        orig.dispose();
-        newPix.dispose();
+        playerTex = TextureUtils.load("player.png", 1, 2);
+        selector = TextureUtils.load("selector.png");
 
         Vector pos = worldToScreen(player.position());
 
@@ -128,6 +119,11 @@ class MainScreen implements Screen {
 
         ScreenUtils.clear(new Color(0x1EA1FFFF));
 
+        Vector3 unprojected = camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+        int mX = (int) Math.floor(unprojected.x / MagicNumbers.WORLD_SCREEN_RATIO);
+        int mY = (int) (unprojected.y / MagicNumbers.WORLD_SCREEN_RATIO - SCREEN_OFFSET_Y);
+        Block hovering = world.blockAt(mX, mY);
+
         Vector pos = worldToScreen(player.position());
 
         float x = (float) (pos.x() + (MagicNumbers.WORLD_SCREEN_RATIO));
@@ -136,32 +132,39 @@ class MainScreen implements Screen {
         camera.update();
 
         batch.setProjectionMatrix(camera.combined);
+
         batch.begin();
         for (Chunk chunk : world.chunks()) {
             renderer.render(chunk);
         }
 
+        batch.draw(selector, mX * MagicNumbers.WORLD_SCREEN_RATIO, mY * MagicNumbers.WORLD_SCREEN_RATIO);
+
         batch.draw(playerTex, x, y);
         batch.end();
 
+        Vector v = new Vector(0, 0);
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE) || Gdx.input.isKeyPressed(Input.Keys.W)) {
-            connection.sendPlayerMove(player, new Vector(0, 1.5));
+            v.add(0, 1.5);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-            connection.sendPlayerMove(player, new Vector(4, 0));
+            v.add(4, 0);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            connection.sendPlayerMove(player, new Vector(-4, 0));
+            v.add(-4, 0);
         }
+
+        if (!v.isZero()) connection.sendPlayerMove(player, v);
+
         if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-            Vector3 unprojected = camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
-            int mX = (int) Math.floor(unprojected.x / MagicNumbers.WORLD_SCREEN_RATIO);
-            int mY = (int) (unprojected.y / MagicNumbers.WORLD_SCREEN_RATIO - SCREEN_OFFSET_Y);
-            System.out.printf("%d, %d%n", mX, mY);
-            Block b = world.blockAt(mX, mY);
-            if (b.material() != Material.AIR) {
-                b.material(Material.AIR);
-                connection.sendBlockUpdate(b);
+            if (hovering.material() != Material.AIR) {
+                hovering.material(Material.AIR);
+                connection.sendBlockUpdate(hovering);
+            }
+        } else if (Gdx.input.isButtonPressed(Input.Buttons.RIGHT)) {
+            if (hovering.material() == Material.AIR) {
+                hovering.material(Material.STONE);
+                connection.sendBlockUpdate(hovering);
             }
         }
 
@@ -214,12 +217,16 @@ class MainScreen implements Screen {
 
     private void doStuff() {
         Packet packet = connection.nextReceived();
-        if (packet instanceof EntityMovePacket movePacket && movePacket.uuid().equals(player.uuid())) {
-            Vector v = movePacket.vector();
-            player.position().set(v);
-        } else if (packet instanceof BlockUpdatePacket blockUpdatePacket) {
-            Block b = blockUpdatePacket.block();
-            world.chunkAt(b.chunk().position()).blockAt(b);
+        while (packet != null) {
+            if (packet instanceof EntityMovePacket movePacket && movePacket.uuid().equals(player.uuid())) {
+                Vector v = movePacket.vector();
+                player.position().set(v);
+            } else if (packet instanceof BlockUpdatePacket blockUpdatePacket) {
+                Block b = blockUpdatePacket.block();
+                world.chunkAt(b.chunk().position()).blockAt(b);
+            }
+
+            packet = connection.nextReceived();
         }
     }
 }

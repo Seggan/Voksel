@@ -18,8 +18,6 @@
 
 package io.github.seggan.blockyworld;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Frustum;
 import io.github.seggan.blockyworld.util.MagicNumbers;
@@ -52,18 +50,7 @@ public final class Renderer {
         Material material = block.material();
         if (material == Material.AIR) return;
         if (!cache.containsKey(material)) {
-            Pixmap orig = new Pixmap(Gdx.files.internal("blocks/" + material.defaultTexture() + ".png"));
-            Pixmap newPix = new Pixmap(
-                MagicNumbers.WORLD_SCREEN_RATIO,
-                MagicNumbers.WORLD_SCREEN_RATIO,
-                orig.getFormat()
-            );
-            newPix.drawPixmap(orig, 0, 0, orig.getWidth(), orig.getHeight(), 0, 0, newPix.getWidth(), newPix.getHeight());
-
-            cache.put(material, new Texture(newPix));
-
-            orig.dispose();
-            newPix.dispose();
+            cache.put(material, TextureUtils.load("blocks/" + material.defaultTexture() + ".png"));
         }
 
         Position pos = screen.worldToScreen(block.position());

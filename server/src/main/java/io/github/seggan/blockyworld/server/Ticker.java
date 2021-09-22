@@ -33,7 +33,7 @@ import java.net.InetAddress;
 
 public final class Ticker implements Runnable {
 
-    private static final Vector MOVE_INCL = new Vector(0, 1);
+    private static final int MOVE_INCL = 1;
 
     private final MainThread mainThread;
     private final ServerWorld world;
@@ -72,7 +72,7 @@ public final class Ticker implements Runnable {
         if (entity instanceof Player player) {
             Vector moving = player.moving();
             if (!moving.isZero()) {
-                deltaVector.add(moving.add(MOVE_INCL));
+                deltaVector.add(moving.add(0, MOVE_INCL));
                 moving.zero();
             }
         }
