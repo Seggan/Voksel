@@ -27,9 +27,11 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import io.github.seggan.blockyworld.server.packets.BlockUpdatePacket;
 import io.github.seggan.blockyworld.server.packets.EntityMovePacket;
 import io.github.seggan.blockyworld.server.packets.Packet;
 import io.github.seggan.blockyworld.util.MagicNumbers;
@@ -37,6 +39,8 @@ import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.util.Vector;
 import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.World;
+import io.github.seggan.blockyworld.world.block.Block;
+import io.github.seggan.blockyworld.world.block.Material;
 import io.github.seggan.blockyworld.world.entity.Player;
 
 import lombok.Getter;
@@ -126,7 +130,7 @@ class MainScreen implements Screen {
 
         Vector pos = worldToScreen(player.position());
 
-        float x = (float) (pos.x() + (MagicNumbers.WORLD_SCREEN_RATIO / 2F));
+        float x = (float) (pos.x() + (MagicNumbers.WORLD_SCREEN_RATIO));
         float y = (float) (pos.y() + MagicNumbers.WORLD_SCREEN_RATIO);
         camera.position.set(x, y, 0);
         camera.update();
@@ -148,6 +152,17 @@ class MainScreen implements Screen {
         }
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
             connection.sendPlayerMove(player, new Vector(-4, 0));
+        }
+        if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+            Vector3 unprojected = camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+            int mX = (int) Math.floor(unprojected.x / MagicNumbers.WORLD_SCREEN_RATIO);
+            int mY = (int) (unprojected.y / MagicNumbers.WORLD_SCREEN_RATIO - SCREEN_OFFSET_Y);
+            System.out.printf("%d, %d%n", mX, mY);
+            Block b = world.blockAt(mX, mY);
+            if (b.material() != Material.AIR) {
+                b.material(Material.AIR);
+                connection.sendBlockUpdate(b);
+            }
         }
 
         this.delta += delta;
@@ -202,6 +217,9 @@ class MainScreen implements Screen {
         if (packet instanceof EntityMovePacket movePacket && movePacket.uuid().equals(player.uuid())) {
             Vector v = movePacket.vector();
             player.position().set(v);
+        } else if (packet instanceof BlockUpdatePacket blockUpdatePacket) {
+            Block b = blockUpdatePacket.block();
+            world.chunkAt(b.chunk().position()).blockAt(b);
         }
     }
 }

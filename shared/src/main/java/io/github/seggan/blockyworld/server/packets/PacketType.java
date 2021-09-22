@@ -45,7 +45,7 @@ public enum PacketType {
 
     USER_MOVE(0x07, true, (unpacker, fromServer) -> new UserMovePacket(Vector.unpack(unpacker), SerialUtil.unpackUUID(unpacker))),
 
-    BLOCK_BREAK(0x08, false, (unpacker, fromServer) -> new BlockUpdatePacket(Block.unpack(unpacker)));
+    BLOCK_BREAK(0x08, true, (unpacker, fromServer) -> new BlockUpdatePacket(Block.unpack(unpacker)));
 
     private final short code;
     private final boolean allowOk;

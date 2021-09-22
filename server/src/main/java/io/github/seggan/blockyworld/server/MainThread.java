@@ -18,6 +18,7 @@
 
 package io.github.seggan.blockyworld.server;
 
+import io.github.seggan.blockyworld.server.packets.BlockUpdatePacket;
 import io.github.seggan.blockyworld.server.packets.ChunkPacket;
 import io.github.seggan.blockyworld.server.packets.EntityMovePacket;
 import io.github.seggan.blockyworld.server.packets.OKPacket;
@@ -26,6 +27,7 @@ import io.github.seggan.blockyworld.server.packets.PlayerPacket;
 import io.github.seggan.blockyworld.server.packets.UserMovePacket;
 import io.github.seggan.blockyworld.server.packets.WorldPacket;
 import io.github.seggan.blockyworld.world.ServerWorld;
+import io.github.seggan.blockyworld.world.block.Block;
 import io.github.seggan.blockyworld.world.entity.Entity;
 import io.github.seggan.blockyworld.world.entity.Player;
 
@@ -88,6 +90,11 @@ public class MainThread extends Thread {
                 Player p = world.player(userMovePacket.uuid());
                 p.moving().add(userMovePacket.vector());
                 server.send(okPacket, sourceAddress);
+            } else if (packet instanceof BlockUpdatePacket blockUpdatePacket) {
+                Block b = blockUpdatePacket.block();
+                world.chunkAt(b.chunk().position()).blockAt(b);
+                server.send(okPacket, sourceAddress);
+                server.send(blockUpdatePacket, null);
             }
         }
         executor.shutdownNow();

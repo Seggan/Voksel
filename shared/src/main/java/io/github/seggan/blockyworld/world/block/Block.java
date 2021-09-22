@@ -54,7 +54,6 @@ public class Block {
 
     public Block(@NonNull Material material, @NonNull Position position, @NonNull Chunk chunk, @Nullable BlockData data) {
         Validate.inclusiveBetween(0, MagicNumbers.CHUNK_WIDTH, position.x());
-        Validate.inclusiveBetween(0, MagicNumbers.CHUNK_HEIGHT, position.y());
         this.material = material;
         this.position = position;
         this.chunk = chunk;

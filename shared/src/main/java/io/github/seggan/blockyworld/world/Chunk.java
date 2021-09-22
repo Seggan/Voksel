@@ -62,8 +62,12 @@ public final class Chunk {
 
     public void blockAt(@NonNull Block block) {
         Position position = block.position();
-        synchronized (blocks) {
-            blocks[position.x()][position.y()] = block;
+        int x = position.x();
+        int y = position.y();
+        if (x >= 0 && x < MagicNumbers.CHUNK_WIDTH && y >= 0 && y <= MagicNumbers.CHUNK_HEIGHT) {
+            synchronized (blocks) {
+                blocks[x][y] = block;
+            }
         }
     }
 

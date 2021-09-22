@@ -18,6 +18,7 @@
 
 package io.github.seggan.blockyworld;
 
+import io.github.seggan.blockyworld.server.packets.BlockUpdatePacket;
 import io.github.seggan.blockyworld.server.packets.ChunkPacket;
 import io.github.seggan.blockyworld.server.packets.OKPacket;
 import io.github.seggan.blockyworld.server.packets.Packet;
@@ -28,6 +29,7 @@ import io.github.seggan.blockyworld.server.packets.WorldPacket;
 import io.github.seggan.blockyworld.util.Vector;
 import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.World;
+import io.github.seggan.blockyworld.world.block.Block;
 import io.github.seggan.blockyworld.world.entity.Player;
 import org.jetbrains.annotations.Nullable;
 import org.msgpack.core.MessagePack;
@@ -132,6 +134,10 @@ public final class Connection {
 
     public void sendPlayerMove(@NonNull Player player, @NonNull Vector vector) {
         sendPacket(new UserMovePacket(vector, player.uuid()), null);
+    }
+
+    public void sendBlockUpdate(@NonNull Block block) {
+        sendPacket(new BlockUpdatePacket(block), null);
     }
 
     public void connectPlayer(@NonNull Player player) {
