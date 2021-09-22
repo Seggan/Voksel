@@ -18,26 +18,15 @@
 
 package io.github.seggan.blockyworld.server.packets;
 
-import io.github.seggan.blockyworld.world.entity.Player;
-import org.msgpack.core.MessageBufferPacker;
+import org.jetbrains.annotations.NotNull;
+import org.msgpack.core.MessageUnpacker;
 
-import lombok.Getter;
 import lombok.NonNull;
 
 import java.io.IOException;
 
-@Getter
-public final class PlayerPacket extends Packet {
+public interface PacketDeserializer {
 
-    private final Player player;
-
-    public PlayerPacket(@NonNull Player player) {
-        super(PacketType.PLAYER_CONNECT, true);
-        this.player = player;
-    }
-
-    @Override
-    protected void pack(@NonNull MessageBufferPacker packer) throws IOException {
-        player.pack(packer);
-    }
+    @NotNull
+    Packet deserialize(@NonNull MessageUnpacker unpacker, boolean fromServer) throws IOException;
 }

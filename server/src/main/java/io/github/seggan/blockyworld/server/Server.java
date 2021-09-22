@@ -86,7 +86,7 @@ public class Server implements IServer {
                 continue;
             }
 
-            socket.getOutputStream().write(new OKPacket(server.getInetAddress()).serialize());
+            socket.getOutputStream().write(new OKPacket().serialize());
 
             InetAddress address = socket.getInetAddress();
             ClientRecvThread thread = new ClientRecvThread(socket, this);

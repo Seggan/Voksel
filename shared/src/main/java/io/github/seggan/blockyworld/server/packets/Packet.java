@@ -24,6 +24,7 @@ import org.msgpack.core.MessagePack;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -36,17 +37,16 @@ public abstract class Packet {
 
     private final PacketType type;
     private final boolean server;
-    private final InetAddress address;
+    @Setter
+    private InetAddress address;
 
     /**
      * @param type the type of the request
      * @param server if the creator of the request is the server
-     * @param address the address of the creator of the request
      */
-    protected Packet(@NonNull PacketType type, boolean server, @NonNull InetAddress address) {
+    protected Packet(@NonNull PacketType type, boolean server) {
         this.type = type;
         this.server = server;
-        this.address = address;
     }
 
     public byte[] serialize() throws IOException {

@@ -138,6 +138,7 @@ class MainScreen implements Screen {
         }
 
         batch.draw(playerTex, x, y);
+        batch.end();
 
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE) || Gdx.input.isKeyPressed(Input.Keys.W)) {
             connection.sendPlayerMove(player, new Vector(0, 1.5));

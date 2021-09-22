@@ -59,7 +59,10 @@ public class ClientRecvThread extends ClientThread {
             }
             int length = buffer.getInt();
             byte[] body = in.readNBytes(length);
-            Packet packet = PacketType.getByCode(code).unpack(MessagePack.newDefaultUnpacker(body), false, client.getInetAddress());
+            Packet packet = PacketType.getByCode(code)
+                .deserializer()
+                .deserialize(MessagePack.newDefaultUnpacker(body), false)
+                .address(client.getInetAddress());
             server.mainThread().addRequest(packet);
         }
         server.stopThread(client.getInetAddress());

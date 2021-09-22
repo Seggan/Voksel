@@ -23,12 +23,11 @@ import org.msgpack.core.MessageBufferPacker;
 import lombok.NonNull;
 
 import java.io.IOException;
-import java.net.InetAddress;
 
 public final class OKPacket extends Packet {
 
-    public OKPacket(@NonNull InetAddress address) {
-        super(PacketType.OK, true, address);
+    public OKPacket() {
+        super(PacketType.OK, true);
     }
 
     @Override

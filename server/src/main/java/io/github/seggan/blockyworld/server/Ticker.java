@@ -103,7 +103,7 @@ public final class Ticker implements Runnable {
 
         entity.position().set(newPos);
         dir.add(deltaGravity);
-        server.send(new EntityMovePacket(entity.uuid(), newPos, thisAddress), null);
+        server.send(new EntityMovePacket(entity.uuid(), newPos), null);
     }
 
 }

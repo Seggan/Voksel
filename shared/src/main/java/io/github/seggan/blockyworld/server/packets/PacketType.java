@@ -20,95 +20,42 @@ package io.github.seggan.blockyworld.server.packets;
 
 import io.github.seggan.blockyworld.util.SerialUtil;
 import io.github.seggan.blockyworld.util.Vector;
-import io.github.seggan.blockyworld.world.Chunk;
-import io.github.seggan.blockyworld.world.World;
+import io.github.seggan.blockyworld.world.block.Block;
 import io.github.seggan.blockyworld.world.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.msgpack.core.MessageUnpacker;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 
-import java.io.IOException;
-import java.net.InetAddress;
-
 @Getter
-@AllArgsConstructor
 public enum PacketType {
-    REQUEST_CHUNK(0x01, false) {
-        @NotNull
-        @Override
-        public Packet unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException {
-            if (server) {
-                return new ChunkPacket(Chunk.unpack(unpacker), address);
-            } else {
-                return new ChunkPacket(
-                    unpacker.unpackInt(),
-                    World.byUUID(SerialUtil.unpackUUID(unpacker)),
-                    address
-                );
-            }
-        }
-    },
-    REQUEST_WORLD(0x02, false) {
-        @NotNull
-        @Override
-        public Packet unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException {
-            if (server) {
-                return new WorldPacket(World.unpack(unpacker), address);
-            } else {
-                return new WorldPacket(address);
-            }
-        }
-    },
+    REQUEST_CHUNK(0x01, false, new ChunkPacket.Deserializer()),
+
+    REQUEST_WORLD(0x02, false, new WorldPacket.Deserializer()),
+
     /*
      *  0x03 is reserved for the invalid protocol packet
      */
-    OK(0x04, true) {
-        @Override
-        public @NotNull Packet unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException {
-            return new OKPacket(address);
-        }
-    },
-    PLAYER_CONNECT(0x05, true) {
-        @NotNull
-        @Override
-        public Packet unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException {
-            return new PlayerPacket(Player.unpack(unpacker), address);
-        }
-    },
-    ENTITY_MOVE(0x06, false) {
-        @NotNull
-        @Override
-        public Packet unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException {
-            return new EntityMovePacket(SerialUtil.unpackUUID(unpacker), Vector.unpack(unpacker), address);
-        }
-    },
-    USER_MOVE(0x07, true) {
-        @NotNull
-        @Override
-        public Packet unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException {
-            return new UserMovePacket(Vector.unpack(unpacker), SerialUtil.unpackUUID(unpacker), address);
-        }
-    };
+
+    OK(0x04, true, (unpacker, fromServer) -> new OKPacket()),
+
+    PLAYER_CONNECT(0x05, true, (unpacker, fromServer) -> new PlayerPacket(Player.unpack(unpacker))),
+
+    ENTITY_MOVE(0x06, false, (unpacker, fromServer) -> new EntityMovePacket(SerialUtil.unpackUUID(unpacker), Vector.unpack(unpacker))),
+
+    USER_MOVE(0x07, true, (unpacker, fromServer) -> new UserMovePacket(Vector.unpack(unpacker), SerialUtil.unpackUUID(unpacker))),
+
+    BLOCK_BREAK(0x08, false, (unpacker, fromServer) -> new BlockUpdatePacket(Block.unpack(unpacker)));
 
     private final short code;
     private final boolean allowOk;
+    private final PacketDeserializer deserializer;
 
-    PacketType(int code, boolean allowOk) {
-        this((short) code, allowOk);
+    PacketType(int code, boolean allowOk, @NonNull PacketDeserializer deserializer) {
+        this.code = (short) code;
+        this.allowOk = allowOk;
+        this.deserializer = deserializer;
     }
-
-    /**
-     * Unpacks the request
-     * @param unpacker the {@link MessageUnpacker} with the data in it
-     * @param server if the creator is the server
-     * @param address the address of the creator
-     * @return the unpacked request
-     */
-    @NotNull
-    public abstract Packet unpack(@NonNull MessageUnpacker unpacker, boolean server, @NonNull InetAddress address) throws IOException;
 
     @NotNull
     public static PacketType getByCode(short code) {

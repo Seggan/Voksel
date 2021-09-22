@@ -21,13 +21,14 @@ package io.github.seggan.blockyworld.server.packets;
 import io.github.seggan.blockyworld.util.SerialUtil;
 import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.World;
+import org.jetbrains.annotations.NotNull;
 import org.msgpack.core.MessageBufferPacker;
+import org.msgpack.core.MessageUnpacker;
 
 import lombok.Getter;
 import lombok.NonNull;
 
 import java.io.IOException;
-import java.net.InetAddress;
 
 @Getter
 public final class ChunkPacket extends Packet {
@@ -36,15 +37,15 @@ public final class ChunkPacket extends Packet {
     private final int position;
     private final World world;
 
-    public ChunkPacket(@NonNull Chunk chunk, @NonNull InetAddress address) {
-        super(PacketType.REQUEST_CHUNK, true, address);
+    public ChunkPacket(@NonNull Chunk chunk) {
+        super(PacketType.REQUEST_CHUNK, true);
         this.chunk = chunk;
         this.position = 0;
         this.world = null;
     }
 
-    public ChunkPacket(int position, @NonNull World world, @NonNull InetAddress address) {
-        super(PacketType.REQUEST_CHUNK, false, address);
+    public ChunkPacket(int position, @NonNull World world) {
+        super(PacketType.REQUEST_CHUNK, false);
         this.position = position;
         this.world = world;
         this.chunk = null;
@@ -57,6 +58,21 @@ public final class ChunkPacket extends Packet {
         } else {
             packer.packInt(position);
             SerialUtil.packUUID(packer, world.uuid());
+        }
+    }
+
+    public static final class Deserializer implements PacketDeserializer {
+
+        @Override
+        public @NotNull Packet deserialize(@NonNull MessageUnpacker unpacker, boolean fromServer) throws IOException {
+            if (fromServer) {
+                return new ChunkPacket(Chunk.unpack(unpacker));
+            } else {
+                return new ChunkPacket(
+                    unpacker.unpackInt(),
+                    World.byUUID(SerialUtil.unpackUUID(unpacker))
+                );
+            }
         }
     }
 }

@@ -60,7 +60,7 @@ public class ClientServerImpl implements IServer {
 
             // this is in integrated server; no need for protocol check
             socket.getInputStream().readNBytes(2);
-            socket.getOutputStream().write(new OKPacket(server.getInetAddress()).serialize());
+            socket.getOutputStream().write(new OKPacket().serialize());
 
             recvThread = new ClientRecvThread(socket, ClientServerImpl.this);
             sendThread = new ClientSendThread(socket);

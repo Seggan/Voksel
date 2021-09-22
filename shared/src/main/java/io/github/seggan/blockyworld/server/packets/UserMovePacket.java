@@ -26,7 +26,6 @@ import lombok.Getter;
 import lombok.NonNull;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.UUID;
 
 @Getter
@@ -36,10 +35,9 @@ public final class UserMovePacket extends Packet {
     private final UUID uuid;
 
     /**
-     * @param address the address of the creator of the request
      */
-    public UserMovePacket(@NonNull Vector vector, @NonNull UUID uuid, @NonNull InetAddress address) {
-        super(PacketType.USER_MOVE, false, address);
+    public UserMovePacket(@NonNull Vector vector, @NonNull UUID uuid) {
+        super(PacketType.USER_MOVE, false);
         this.vector = vector;
         this.uuid = uuid;
     }

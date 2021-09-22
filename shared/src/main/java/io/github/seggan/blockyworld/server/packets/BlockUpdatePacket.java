@@ -18,7 +18,7 @@
 
 package io.github.seggan.blockyworld.server.packets;
 
-import io.github.seggan.blockyworld.world.entity.Player;
+import io.github.seggan.blockyworld.world.block.Block;
 import org.msgpack.core.MessageBufferPacker;
 
 import lombok.Getter;
@@ -27,17 +27,17 @@ import lombok.NonNull;
 import java.io.IOException;
 
 @Getter
-public final class PlayerPacket extends Packet {
+public final class BlockUpdatePacket extends Packet {
 
-    private final Player player;
+    private final Block block;
 
-    public PlayerPacket(@NonNull Player player) {
-        super(PacketType.PLAYER_CONNECT, true);
-        this.player = player;
+    public BlockUpdatePacket(@NonNull Block block) {
+        super(PacketType.BLOCK_BREAK, false);
+        this.block = block;
     }
 
     @Override
     protected void pack(@NonNull MessageBufferPacker packer) throws IOException {
-        player.pack(packer);
+        block.pack(packer);
     }
 }

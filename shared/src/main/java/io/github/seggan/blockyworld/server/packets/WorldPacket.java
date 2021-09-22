@@ -19,13 +19,14 @@
 package io.github.seggan.blockyworld.server.packets;
 
 import io.github.seggan.blockyworld.world.World;
+import org.jetbrains.annotations.NotNull;
 import org.msgpack.core.MessageBufferPacker;
+import org.msgpack.core.MessageUnpacker;
 
 import lombok.Getter;
 import lombok.NonNull;
 
 import java.io.IOException;
-import java.net.InetAddress;
 
 @Getter
 public final class WorldPacket extends Packet {
@@ -34,15 +35,14 @@ public final class WorldPacket extends Packet {
 
     /**
      * @param world a world
-     * @param address the address of the creator of the request
      */
-    public WorldPacket(@NonNull World world, @NonNull InetAddress address) {
-        super(PacketType.REQUEST_WORLD, true, address);
+    public WorldPacket(@NonNull World world) {
+        super(PacketType.REQUEST_WORLD, true);
         this.world = world;
     }
 
-    public WorldPacket(@NonNull InetAddress address) {
-        super(PacketType.REQUEST_WORLD, false, address);
+    public WorldPacket() {
+        super(PacketType.REQUEST_WORLD, false);
         this.world = null;
     }
 
@@ -50,6 +50,18 @@ public final class WorldPacket extends Packet {
     protected void pack(@NonNull MessageBufferPacker packer) throws IOException {
         if (server()) {
             world.pack(packer);
+        }
+    }
+
+    public static final class Deserializer implements PacketDeserializer {
+
+        @Override
+        public @NotNull Packet deserialize(@NonNull MessageUnpacker unpacker, boolean fromServer) throws IOException {
+            if (fromServer) {
+                return new WorldPacket(World.unpack(unpacker));
+            } else {
+                return new WorldPacket();
+            }
         }
     }
 }

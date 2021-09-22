@@ -52,7 +52,7 @@ public class MainThread extends Thread {
 
     public MainThread(IServer server) throws UnknownHostException {
         super("Main Server Thread");
-        this.okPacket = new OKPacket(this.thisAddress);
+        this.okPacket = new OKPacket();
         this.server = server;
         setDaemon(true);
     }
@@ -71,10 +71,10 @@ public class MainThread extends Thread {
 
             InetAddress sourceAddress = packet.address();
             if (packet instanceof ChunkPacket chunkPacket) {
-                ChunkPacket back = new ChunkPacket(world.chunkAt(chunkPacket.position()), thisAddress);
+                ChunkPacket back = new ChunkPacket(world.chunkAt(chunkPacket.position()));
                 server.send(back, sourceAddress);
-            } else if (packet instanceof WorldPacket worldPacket) {
-                WorldPacket back = new WorldPacket(world, thisAddress);
+            } else if (packet instanceof WorldPacket) {
+                WorldPacket back = new WorldPacket(world);
                 server.send(back, sourceAddress);
             } else if (packet instanceof PlayerPacket playerPacket) {
                 world.addPlayer(playerPacket.player());
@@ -83,7 +83,7 @@ public class MainThread extends Thread {
                 Entity e = world.entity(entityMovePacket.uuid());
                 e.direction().add(entityMovePacket.vector());
                 server.send(okPacket, sourceAddress);
-                server.send(new EntityMovePacket(e.uuid(), e.direction(), thisAddress), null);
+                server.send(new EntityMovePacket(e.uuid(), e.direction()), null);
             } else if (packet instanceof UserMovePacket userMovePacket) {
                 Player p = world.player(userMovePacket.uuid());
                 p.moving().add(userMovePacket.vector());

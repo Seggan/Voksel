@@ -38,7 +38,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
@@ -50,21 +49,18 @@ public final class Connection {
     private static final int HEADER_SIZE = Short.BYTES + Integer.BYTES;
 
     private final Socket socket;
-    private final OutputStream out;
     private final InputStream in;
-    private final InetAddress address;
 
     private final BlockingQueue<Packet> queue = new LinkedBlockingQueue<>();
 
     public Connection(@NonNull Socket socket) {
         this.socket = socket;
         try {
-            out = this.socket.getOutputStream();
+            OutputStream out = this.socket.getOutputStream();
             in = this.socket.getInputStream();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        address = socket.getInetAddress();
 
         Thread thread = new Thread(() -> {
             while (!socket.isInputShutdown()) {
@@ -79,7 +75,10 @@ public final class Connection {
                     short code = buffer.getShort();
                     int length = buffer.getInt();
                     byte[] body = in.readNBytes(length);
-                    Packet pack = PacketType.getByCode(code).unpack(MessagePack.newDefaultUnpacker(body), true, address);
+                    Packet pack = PacketType.getByCode(code)
+                        .deserializer()
+                        .deserialize(MessagePack.newDefaultUnpacker(body), true)
+                        .address(socket.getInetAddress());
                     queue.add(pack);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -119,24 +118,24 @@ public final class Connection {
 
     @Nullable
     public World requestWorld() {
-        WorldPacket packet = sendPacket(new WorldPacket(address), WorldPacket.class);
+        WorldPacket packet = sendPacket(new WorldPacket(), WorldPacket.class);
         if (packet == null) return null;
         return packet.world();
     }
 
     @Nullable
     public Chunk requestChunk(int pos, @NonNull World world) {
-        ChunkPacket packet = sendPacket(new ChunkPacket(pos, world, address), ChunkPacket.class);
+        ChunkPacket packet = sendPacket(new ChunkPacket(pos, world), ChunkPacket.class);
         if (packet == null) return null;
         return packet.chunk();
     }
 
     public void sendPlayerMove(@NonNull Player player, @NonNull Vector vector) {
-        sendPacket(new UserMovePacket(vector, player.uuid(), address), null);
+        sendPacket(new UserMovePacket(vector, player.uuid()), null);
     }
 
     public void connectPlayer(@NonNull Player player) {
-        sendPacket(new PlayerPacket(player, address), null);
+        sendPacket(new PlayerPacket(player), null);
     }
 
     @Nullable

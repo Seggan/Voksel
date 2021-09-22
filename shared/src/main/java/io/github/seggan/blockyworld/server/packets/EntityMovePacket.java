@@ -26,7 +26,6 @@ import lombok.Getter;
 import lombok.NonNull;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.UUID;
 
 @Getter
@@ -37,10 +36,9 @@ public final class EntityMovePacket extends Packet {
 
     /**
      * @param uuid the {@link UUID} of the entity that moved
-     * @param address the address of the creator of the request
      */
-    public EntityMovePacket(@NonNull UUID uuid, @NonNull Vector vector, @NonNull InetAddress address) {
-        super(PacketType.ENTITY_MOVE, true, address);
+    public EntityMovePacket(@NonNull UUID uuid, @NonNull Vector vector) {
+        super(PacketType.ENTITY_MOVE, true);
         this.uuid = uuid;
         this.vector = vector;
     }
