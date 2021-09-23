@@ -35,8 +35,9 @@ import java.util.List;
 @Getter
 public final class ChunkGenerator {
 
-    private final FastNoiseLite noise = new FastNoiseLite();
-    private final FastNoiseLite noise2 = new FastNoiseLite();
+    private final int seed = 0;
+    private final FastNoiseLite noise = new FastNoiseLite(seed);
+    private final FastNoiseLite noise2 = new FastNoiseLite(seed);
 
     private final @NotNull Chunk chunk;
 

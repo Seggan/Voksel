@@ -83,8 +83,8 @@ public final class Ticker implements Runnable {
         int wholeX = (int) newPosX;
         int wholeY = (int) newPosY;
 
-        for (int x = wholeX - 6; x < wholeX + 6; x++) {
-            for (int y = wholeY - 6; y < wholeY + 6; y++) {
+        for (int x = wholeX - 2; x < wholeX + 6; x++) {
+            for (int y = wholeY - 2; y < wholeY + 6; y++) {
                 if (!world.blockAt(x, y).isPassable() && NumberUtil.rectIntersect(
                     newPosX + 1.1,
                     newPosY + 1,

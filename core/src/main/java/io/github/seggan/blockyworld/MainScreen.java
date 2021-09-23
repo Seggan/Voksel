@@ -167,9 +167,9 @@ class MainScreen implements Screen {
                 Rectangle selector = new Rectangle(mX, mY, 1, 1);
                 Rectangle playerRect = new Rectangle(
                     (float) player.position().x() + 1,
-                    (float) player.position().y(),
+                    (float) player.position().y() + 1,
                     1,
-                    2
+                    1.9F
                 );
                 if (!selector.overlaps(playerRect)) {
                     hovering.material(Material.STONE);
