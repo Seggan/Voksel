@@ -146,7 +146,7 @@ class MainScreen implements Screen {
 
         Vector v = new Vector(0, 0);
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE) || Gdx.input.isKeyPressed(Input.Keys.W)) {
-            v.add(0, 1.5);
+            v.add(0, 2);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.D)) {
             v.add(4, 0);

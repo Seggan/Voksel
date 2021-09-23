@@ -26,7 +26,6 @@ import io.github.seggan.blockyworld.util.MagicNumbers;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.DatagramSocket;
-import java.net.ServerSocket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -40,7 +39,7 @@ public class Lwjgl3Launcher {
 		//System.setOut(out);
 		//System.setErr(out);
         BlockingQueue<Object> queue = new LinkedBlockingQueue<>();
-        if (available(MagicNumbers.PORT)) {
+        if (available()) {
             new Thread() {
                 @Override
                 public void run() {
@@ -60,48 +59,26 @@ public class Lwjgl3Launcher {
 
         queue.take();
 
-        createApplication();
-    }
-
-    private static Lwjgl3Application createApplication() {
-        return new Lwjgl3Application(new BlockyWorld(), getDefaultConfiguration());
+        new Lwjgl3Application(new BlockyWorld(), getDefaultConfiguration());
     }
 
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
         configuration.setTitle("BlockyWorld");
         configuration.setWindowedMode(600, 600);
-        configuration.setWindowIcon("libgdx128.png", "libgdx64.png", "libgdx32.png", "libgdx16.png");
+        configuration.setWindowIcon("icon.png");
         return configuration;
     }
 
     /**
-     * Checks to see if a specific port is available.
-     *
-     * @param port the port to check for availability
+     * Checks to see if the port is available
      */
-    private static boolean available(int port) {
-        ServerSocket ss = null;
-        DatagramSocket ds = null;
-        try {
-            ss = new ServerSocket(port);
-            ss.setReuseAddress(true);
-            ds = new DatagramSocket(port);
+    private static boolean available() {
+
+        try(DatagramSocket ds = new DatagramSocket(MagicNumbers.PORT)) {
             ds.setReuseAddress(true);
             return true;
         } catch (IOException ignored) {
-        } finally {
-            if (ds != null) {
-                ds.close();
-            }
-
-            if (ss != null) {
-                try {
-                    ss.close();
-                } catch (IOException e) {
-                    /* should not be thrown */
-                }
-            }
         }
 
         return false;

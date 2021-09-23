@@ -67,24 +67,57 @@ public final class Ticker implements Runnable {
 
     private void processEntity(@NotNull Entity entity, double delta) {
         Vector dir = entity.direction();
-        Vector deltaGravity = MagicNumbers.GRAVITY.copy().multiply(delta);
-        Vector deltaVector = dir.copy().add(deltaGravity);
+        Vector deltaVector = dir.copy();
+        boolean isMoving = false;
         if (entity instanceof Player player) {
             Vector moving = player.moving();
             if (!moving.isZero()) {
+                isMoving = true;
                 deltaVector.add(moving.add(0, MOVE_INCL));
                 moving.zero();
             }
         }
-        deltaVector.multiply(delta);
+
+        if (isMoving) {
+            moveCheck:
+            {
+                Vector newPos = entity.position().copy().add(deltaVector.multiply(delta));
+                double newPosX = newPos.x();
+                double newPosY = newPos.y();
+                int wholeX = (int) newPosX;
+                int wholeY = (int) newPosY;
+
+                for (int x = wholeX - 2; x < wholeX + 3; x++) {
+                    for (int y = wholeY - 2; y < wholeY + 4; y++) {
+                        if (!world.blockAt(x, y).isPassable() && NumberUtil.rectIntersect(
+                            newPosX + 1.1,
+                            newPosY + 1,
+                            0.8,
+                            2,
+                            x,
+                            y,
+                            1,
+                            1
+                        )) {
+                            break moveCheck;
+                        }
+                    }
+                }
+
+                entity.position().set(newPos);
+            }
+        }
+
+        Vector deltaGravity = MagicNumbers.GRAVITY.copy().multiply(delta);
+        deltaVector = dir.copy().add(deltaGravity).multiply(delta);
         Vector newPos = entity.position().copy().add(deltaVector);
         double newPosX = newPos.x();
         double newPosY = newPos.y();
         int wholeX = (int) newPosX;
         int wholeY = (int) newPosY;
 
-        for (int x = wholeX - 2; x < wholeX + 6; x++) {
-            for (int y = wholeY - 2; y < wholeY + 6; y++) {
+        for (int x = wholeX - 2; x < wholeX + 3; x++) {
+            for (int y = wholeY - 2; y < wholeY + 4; y++) {
                 if (!world.blockAt(x, y).isPassable() && NumberUtil.rectIntersect(
                     newPosX + 1.1,
                     newPosY + 1,
