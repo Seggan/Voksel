@@ -26,6 +26,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -163,8 +164,17 @@ class MainScreen implements Screen {
             }
         } else if (Gdx.input.isButtonPressed(Input.Buttons.RIGHT)) {
             if (hovering.material() == Material.AIR) {
-                hovering.material(Material.STONE);
-                connection.sendBlockUpdate(hovering);
+                Rectangle selector = new Rectangle(mX, mY, 1, 1);
+                Rectangle playerRect = new Rectangle(
+                    (float) player.position().x() + 1,
+                    (float) player.position().y(),
+                    1,
+                    2
+                );
+                if (!selector.overlaps(playerRect)) {
+                    hovering.material(Material.STONE);
+                    connection.sendBlockUpdate(hovering);
+                }
             }
         }
 
