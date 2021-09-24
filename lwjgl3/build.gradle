@@ -1,52 +1,120 @@
 plugins {
-	id "com.github.johnrengelman.shadow" version "7.0.0"
+    id "com.github.johnrengelman.shadow" version "7.0.0"
 }
 
 apply plugin: 'application'
 
-sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
+sourceSets.main.resources.srcDirs += [rootProject.file('assets').path]
 mainClassName = 'io.github.seggan.blockyworld.lwjgl3.Lwjgl3Launcher'
 eclipse.project.name = appName + '-lwjgl3'
 sourceCompatibility = 16
 
 dependencies {
-	implementation project(':core')
-	implementation project(':server')
-	implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
-	implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
-	implementation "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+    implementation project(':core')
+    implementation project(':server')
+    implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    implementation "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
 }
 
 def os = System.properties['os.name'].toLowerCase()
 
 run {
-	workingDir = rootProject.file('assets').path
-	setIgnoreExitValue(true)
-	
-	if (os.contains('mac')) {
-		// Required to run LWJGL3 Java apps on MacOS
-		jvmArgs += "-XstartOnFirstThread"
-	}
+    workingDir = rootProject.file('assets').path
+    setIgnoreExitValue(true)
+
+    if (os.contains('mac')) {
+        // Required to run LWJGL3 Java apps on MacOS
+        jvmArgs += "-XstartOnFirstThread"
+    }
 }
 
 jar {
 // sets the name of the .jar file this produces to the name of the game or app.
-	archiveBaseName.set(appName)
+    archiveBaseName.set(appName)
 // the duplicatesStrategy matters starting in Gradle 7.0; this setting works.
-	duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
-	dependsOn configurations.runtimeClasspath
-	from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+    dependsOn configurations.runtimeClasspath
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
 // these "exclude" lines remove some unnecessary duplicate files in the output JAR.
-	exclude('META-INF/INDEX.LIST', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA')
-	dependencies {
-		exclude('META-INF/INDEX.LIST', 'META-INF/maven/**')
-	}
+    exclude('META-INF/INDEX.LIST', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA')
+    dependencies {
+        exclude('META-INF/INDEX.LIST', 'META-INF/maven/**')
+    }
 // setting the manifest makes the JAR runnable.
-	manifest {
-		attributes 'Main-Class': project.mainClassName
-	}
+    manifest {
+        attributes 'Main-Class': project.mainClassName
+    }
 // this last step may help on some OSes that need extra instruction to make runnable JARs.
-	doLast {
-		file(archiveFile).setExecutable(true, false)
-	}
+    doLast {
+        file(archiveFile).setExecutable(true, false)
+    }
+}
+
+task prepare(type: Copy) {
+
+    dependsOn 'jar'
+
+    destinationDir = file("$buildDir")
+    includeEmptyDirs = true
+
+    into('lib') {
+        from configurations.compileClasspath
+    }
+}
+
+String dir = "$buildDir/libs/${shadowJar.archiveFile.get().asFile.name}"
+String obf = "$buildDir/libs/${rootProject.name} v${project.version}.jar"
+
+task packageJar(type: proguard.gradle.ProGuardTask) {
+    group = "package"
+    dependsOn 'shadowJar'
+
+    injars dir
+
+    libraryjars "${System.getProperty('java.home')}/jmods/java.base.jmod", jarfilter: '!**.jar', filter: '!module-info.class'
+    fileTree("$buildDir/lib").include("**/*.jar").collect { f -> libraryjars f.path }
+
+    dontwarn "sun.misc.Unsafe"
+    dontwarn "javax.**"
+    dontwarn "lombok.**"
+    dontwarn "org.lwjgl.vulkan.**"
+    dontwarn "java.**"
+    dontwarn "org.checkerframework.**"
+    dontwarn "com.apple.eio.FileManager"
+    dontwarn "com.badlogic.gdx.backends.android.AndroidFragmentApplication"
+    dontwarn "com.badlogic.gdx.utils.GdxBuild"
+    dontwarn "com.badlogic.gdx.physics.box2d.utils.Box2DBuild"
+    dontwarn "com.badlogic.gdx.jnigen.BuildTarget*"
+    dontwarn "com.badlogic.gdx.graphics.g2d.freetype.FreetypeBuild"
+    dontwarn "org.jetbrains.annotations.**"
+
+    outjars obf
+
+    keepclasseswithmembers "public class * { \
+        public static void main(java.lang.String[]); \
+    }"
+
+    keepclasseswithmembernames includedescriptorclasses: true, 'class * { \
+        native <methods>; \
+    }'
+
+    keepclassmembers 'enum * { \
+        public static **[] values(); \
+        public static ** valueOf(java.lang.String); \
+    }'
+
+    keepclassmembers 'class * implements java.io.Serializable { \
+        static final long serialVersionUID; \
+        static final java.io.ObjectStreamField[] serialPersistentFields; \
+        private void writeObject(java.io.ObjectOutputStream); \
+        private void readObject(java.io.ObjectInputStream); \
+        java.lang.Object writeReplace(); \
+        java.lang.Object readResolve(); \
+    }'
+
+    keepclassmembers "class com.badlogic.gdx.graphics.Cubemap* { *; }"
+    keepclassmembers "class com.badlogic.gdx.graphics.GL* { *; }"
+    keep "class com.badlogic.** { *; }"
+    keep "class org.lwjgl.** { *; }"
 }

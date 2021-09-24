@@ -74,7 +74,6 @@ public class Lwjgl3Launcher {
      * Checks to see if the port is available
      */
     private static boolean available() {
-
         try(DatagramSocket ds = new DatagramSocket(MagicNumbers.PORT)) {
             ds.setReuseAddress(true);
             return true;
