@@ -20,6 +20,7 @@ package io.github.seggan.blockyworld.world;
 
 import com.google.common.collect.ImmutableSet;
 import io.github.seggan.blockyworld.BlockyWorld;
+import io.github.seggan.blockyworld.world.chunk.Chunk;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;

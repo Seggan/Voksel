@@ -19,8 +19,8 @@
 package io.github.seggan.blockyworld.server.packets;
 
 import io.github.seggan.blockyworld.util.SerialUtil;
-import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.World;
+import io.github.seggan.blockyworld.world.chunk.Chunk;
 import org.jetbrains.annotations.NotNull;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessageUnpacker;
@@ -66,7 +66,7 @@ public final class ChunkPacket extends Packet {
         @Override
         public @NotNull Packet deserialize(@NonNull MessageUnpacker unpacker, boolean fromServer) throws IOException {
             if (fromServer) {
-                return new ChunkPacket(Chunk.unpack(unpacker));
+                return new ChunkPacket(Chunk.unpack(unpacker, null));
             } else {
                 return new ChunkPacket(
                     unpacker.unpackInt(),

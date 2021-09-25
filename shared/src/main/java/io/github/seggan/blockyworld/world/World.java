@@ -26,6 +26,7 @@ import io.github.seggan.blockyworld.util.SerialUtil;
 import io.github.seggan.blockyworld.util.Vector;
 import io.github.seggan.blockyworld.world.block.Block;
 import io.github.seggan.blockyworld.world.block.Material;
+import io.github.seggan.blockyworld.world.chunk.Chunk;
 import io.github.seggan.blockyworld.world.entity.Entity;
 import io.github.seggan.blockyworld.world.entity.Player;
 import org.jetbrains.annotations.Contract;
@@ -34,8 +35,10 @@ import org.jetbrains.annotations.Nullable;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessageUnpacker;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -64,11 +67,13 @@ public abstract class World {
         ctor = ctor1;
     }
 
-    private final String name;
-    private final UUID uuid;
+    @Setter
+    protected String name;
+    @Setter(AccessLevel.PROTECTED)
+    protected UUID uuid;
 
-    private final Map<UUID, Player> players = new ConcurrentHashMap<>();
-    private final Map<UUID, Entity> entities = new ConcurrentHashMap<>();
+    protected final Map<UUID, Player> players = new ConcurrentHashMap<>();
+    protected final Map<UUID, Entity> entities = new ConcurrentHashMap<>();
 
     protected World(String name, UUID uuid) {
         this.name = name;
@@ -113,7 +118,7 @@ public abstract class World {
 
     @NotNull
     public Block blockAt(int x, int y) {
-        return chunkAt(NumberUtil.worldToChunk(x)).blockAt(NumberUtil.worldToInChunk(x), y);
+        return chunkAt(NumberUtil.worldToChunk(x)).getBlock(NumberUtil.worldToInChunk(x), y);
     }
 
     @NotNull
@@ -130,7 +135,7 @@ public abstract class World {
         Chunk chunk = chunkAt(NumberUtil.worldToChunk(x));
         int inChunk = NumberUtil.worldToInChunk(x);
         for (int y = MagicNumbers.CHUNK_HEIGHT; y >= 0; y--) {
-            if (chunk.blockAt(inChunk, y).material() != Material.AIR) {
+            if (chunk.getBlock(inChunk, y).material() != Material.AIR) {
                 return y;
             }
         }
@@ -143,13 +148,13 @@ public abstract class World {
         Chunk chunk = chunkAt(NumberUtil.worldToChunk(x));
         int inChunk = NumberUtil.worldToInChunk(x);
         for (int y = MagicNumbers.CHUNK_HEIGHT; y >= 0; y--) {
-            Block b = chunk.blockAt(inChunk, y);
+            Block b = chunk.getBlock(inChunk, y);
             if (b.material() != Material.AIR) {
                 return b;
             }
         }
 
-        return chunk.blockAt(inChunk, 0);
+        return chunk.getBlock(inChunk, 0);
     }
 
     public void addPlayer(@NonNull Player p) {
@@ -193,4 +198,15 @@ public abstract class World {
         SerialUtil.packUUID(packer, uuid());
     }
 
+    @Override
+    public int hashCode() {
+        return this.uuid.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (!(obj instanceof World other)) return false;
+        return this.uuid.equals(other.uuid);
+    }
 }

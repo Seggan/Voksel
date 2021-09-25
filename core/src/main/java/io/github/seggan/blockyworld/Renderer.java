@@ -22,9 +22,9 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Frustum;
 import io.github.seggan.blockyworld.util.MagicNumbers;
 import io.github.seggan.blockyworld.util.Position;
-import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.block.Block;
 import io.github.seggan.blockyworld.world.block.Material;
+import io.github.seggan.blockyworld.world.chunk.Chunk;
 import org.jetbrains.annotations.NotNull;
 
 import lombok.AccessLevel;

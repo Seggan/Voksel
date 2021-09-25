@@ -37,10 +37,10 @@ import io.github.seggan.blockyworld.server.packets.Packet;
 import io.github.seggan.blockyworld.util.MagicNumbers;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.util.Vector;
-import io.github.seggan.blockyworld.world.Chunk;
 import io.github.seggan.blockyworld.world.World;
 import io.github.seggan.blockyworld.world.block.Block;
 import io.github.seggan.blockyworld.world.block.Material;
+import io.github.seggan.blockyworld.world.chunk.Chunk;
 import io.github.seggan.blockyworld.world.entity.Player;
 
 import lombok.Getter;
@@ -166,7 +166,7 @@ class MainScreen implements Screen {
             if (hovering.material() == Material.AIR) {
                 Rectangle selector = new Rectangle(mX, mY, 1, 1);
                 Rectangle playerRect = new Rectangle(
-                    (float) player.position().x() + 1,
+                    (float) player.position().x() + 1.1F,
                     (float) player.position().y() + 1,
                     1,
                     1.9F
@@ -233,7 +233,7 @@ class MainScreen implements Screen {
                 player.position().set(v);
             } else if (packet instanceof BlockUpdatePacket blockUpdatePacket) {
                 Block b = blockUpdatePacket.block();
-                world.chunkAt(b.chunk().position()).blockAt(b);
+                world.chunkAt(b.chunk().position()).setBlock(b);
             }
 
             packet = connection.nextReceived();

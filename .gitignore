@@ -66,6 +66,7 @@ nb-configuration.xml
 .DS_Store
 
 log.txt
+world/
 
 ## Miscellaneous
 *~

@@ -16,11 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.seggan.blockyworld.world;
+package io.github.seggan.blockyworld.world.chunk;
 
 import io.github.seggan.blockyworld.util.MagicNumbers;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.util.SerialUtil;
+import io.github.seggan.blockyworld.world.World;
 import io.github.seggan.blockyworld.world.block.Block;
 import io.github.seggan.blockyworld.world.block.BlockData;
 import io.github.seggan.blockyworld.world.block.Material;
@@ -38,7 +39,9 @@ import java.util.Set;
 
 public final class Chunk {
 
-    private final Block[][] blocks;
+    public static final short CHUNK_VERSION = 0;
+
+    Block[][] blocks;
     @Getter
     private final int position;
     @Getter
@@ -52,15 +55,15 @@ public final class Chunk {
         generator.generateChunk(this);
     }
 
-    public void blockAt(@NonNull Material material, int x, int y, @Nullable BlockData data) {
-        blockAt(material, new Position(x, y), data);
+    public void setBlock(@NonNull Material material, int x, int y, @Nullable BlockData data) {
+        setBlock(material, new Position(x, y), data);
     }
 
-    public void blockAt(@NonNull Material material, @NonNull Position position, @Nullable BlockData data) {
-        blockAt(new Block(material, position, this, data));
+    public void setBlock(@NonNull Material material, @NonNull Position position, @Nullable BlockData data) {
+        setBlock(new Block(material, position, this, data));
     }
 
-    public void blockAt(@NonNull Block block) {
+    public void setBlock(@NonNull Block block) {
         Position position = block.position();
         int x = position.x();
         int y = position.y();
@@ -92,7 +95,7 @@ public final class Chunk {
     }
 
     @NotNull
-    public Block blockAt(int x, int y) {
+    public Block getBlock(int x, int y) {
         if (x >= 0 && x < MagicNumbers.CHUNK_WIDTH && y >= 0 && y <= MagicNumbers.CHUNK_HEIGHT) {
             synchronized (blocks) {
                 Block b = blocks[x][y];
@@ -108,11 +111,13 @@ public final class Chunk {
     }
 
     @NotNull
-    public Block blockAt(@NonNull Position position) {
-        return blockAt(position.x(), position.y());
+    public Block getBlock(@NonNull Position position) {
+        return getBlock(position.x(), position.y());
     }
 
     public void pack(@NonNull MessageBufferPacker packer) throws IOException {
+        packer.packShort(CHUNK_VERSION);
+
         packer.packInt(position);
         SerialUtil.packUUID(packer, world.uuid());
         for (Block[] arr : blocks) {
@@ -135,26 +140,13 @@ public final class Chunk {
         }
     }
 
-    public static Chunk unpack(@NonNull MessageUnpacker unpacker) throws IOException {
-        int cPos = unpacker.unpackInt();
-        World world = World.byUUID(SerialUtil.unpackUUID(unpacker));
-        Chunk chunk = new Chunk(cPos, world);
+    public static Chunk unpack(@NonNull MessageUnpacker unpacker, @Nullable World world) throws IOException {
+        short version = unpacker.unpackShort();
 
-        for (int x = 0; x < MagicNumbers.CHUNK_WIDTH; x++) {
-            for (int y = 0; y < MagicNumbers.CHUNK_HEIGHT; y++) {
-                if (!unpacker.tryUnpackNil()) {
-                    Position pos = Position.unpack(unpacker);
-                    Material material = Material.valueOf(unpacker.unpackString());
-                    BlockData data = null;
-                    if (!unpacker.tryUnpackNil()) {
-                        data = BlockData.unpack(unpacker);
-                    }
-                    chunk.blockAt(material, pos, data);
-                }
-            }
-        }
-
-        return chunk;
+        return switch (version) {
+            case 0 -> ChunkUnpacker.unpack0(unpacker, world);
+            default -> throw new IllegalStateException("Unexpected value: " + version);
+        };
     }
 
     @Override

@@ -59,6 +59,8 @@ public class Lwjgl3Launcher {
 
         queue.take();
 
+        System.out.println(System.getProperty("user.dir"));
+
         new Lwjgl3Application(new BlockyWorld(), getDefaultConfiguration());
     }
 

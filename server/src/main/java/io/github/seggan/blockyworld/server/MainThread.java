@@ -92,7 +92,7 @@ public class MainThread extends Thread {
                 server.send(okPacket, sourceAddress);
             } else if (packet instanceof BlockUpdatePacket blockUpdatePacket) {
                 Block b = blockUpdatePacket.block();
-                world.chunkAt(b.chunk().position()).blockAt(b);
+                world.chunkAt(b.chunk().position()).setBlock(b);
                 server.send(okPacket, sourceAddress);
                 server.send(blockUpdatePacket, null);
             }

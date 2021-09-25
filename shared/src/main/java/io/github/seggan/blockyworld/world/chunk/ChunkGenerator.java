@@ -16,10 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.seggan.blockyworld.world;
+package io.github.seggan.blockyworld.world.chunk;
 
 import com.google.errorprone.annotations.ForOverride;
 import io.github.seggan.blockyworld.util.MagicNumbers;
+import io.github.seggan.blockyworld.world.FastNoiseLite;
 import io.github.seggan.blockyworld.world.block.Block;
 import io.github.seggan.blockyworld.world.block.BlockData;
 import io.github.seggan.blockyworld.world.block.Material;
@@ -63,7 +64,7 @@ public final class ChunkGenerator {
             float n2 = noise2.GetNoise(x + chunk.position() * MagicNumbers.CHUNK_WIDTH, 0);
             int height = Math.min((int) (50 + 50 + 20 * (n + n2)), 255);
             for (int y = 0; y < height; y++) {
-                chunk.blockAt(Material.STONE, x, y, null);
+                chunk.setBlock(Material.STONE, x, y, null);
             }
         }
     }
