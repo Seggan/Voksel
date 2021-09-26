@@ -41,18 +41,21 @@ public final class Chunk {
 
     public static final short CHUNK_VERSION = 0;
 
-    Block[][] blocks;
+    private final Block[][] blocks;
+    private final Object bLock = new Object();
     @Getter
     private final int position;
     @Getter
     private final World world;
 
-    public Chunk(int position, @NonNull World world) {
+    public Chunk(int position, @NonNull World world, boolean generate) {
         this.blocks = new Block[MagicNumbers.CHUNK_WIDTH][MagicNumbers.CHUNK_HEIGHT + 1];
         this.position = position;
         this.world = world;
-        ChunkGenerator generator = new ChunkGenerator(this);
-        generator.generateChunk(this);
+        if (generate) {
+            ChunkGenerator generator = new ChunkGenerator(this);
+            generator.generateChunk(this);
+        }
     }
 
     public void setBlock(@NonNull Material material, int x, int y, @Nullable BlockData data) {
@@ -68,8 +71,12 @@ public final class Chunk {
         int x = position.x();
         int y = position.y();
         if (x >= 0 && x < MagicNumbers.CHUNK_WIDTH && y >= 0 && y <= MagicNumbers.CHUNK_HEIGHT) {
-            synchronized (blocks) {
-                blocks[x][y] = block;
+            synchronized (bLock) {
+                if (block.material() == Material.AIR) {
+                    blocks[x][y] = null;
+                } else {
+                    blocks[x][y] = block;
+                }
             }
         }
     }
@@ -82,7 +89,7 @@ public final class Chunk {
      */
     public Set<Block> blocks() {
         Set<Block> blockSet = new HashSet<>();
-        synchronized (blocks) {
+        synchronized (bLock) {
             for (Block[] arr : blocks) {
                 for (Block b : arr) {
                     if (b == null) continue;
@@ -97,7 +104,7 @@ public final class Chunk {
     @NotNull
     public Block getBlock(int x, int y) {
         if (x >= 0 && x < MagicNumbers.CHUNK_WIDTH && y >= 0 && y <= MagicNumbers.CHUNK_HEIGHT) {
-            synchronized (blocks) {
+            synchronized (bLock) {
                 Block b = blocks[x][y];
                 return b == null ? new Block(Material.AIR, x, y, this, null) : b;
             }

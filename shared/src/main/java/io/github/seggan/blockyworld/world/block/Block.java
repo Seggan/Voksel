@@ -34,11 +34,9 @@ import org.msgpack.core.MessageUnpacker;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.ToString;
 
 import java.io.IOException;
 
-@ToString
 @EqualsAndHashCode
 public class Block {
 
@@ -132,5 +130,10 @@ public class Block {
     public boolean isPassable() {
         Material material = material();
         return material == Material.AIR;
+    }
+
+    @Override
+    public String toString() {
+        return "Block(position=" + this.position() + ", chunk=" + this.chunk + ", material=" + this.material.name() + ")";
     }
 }

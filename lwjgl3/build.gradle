@@ -118,3 +118,5 @@ task packageJar(type: proguard.gradle.ProGuardTask) {
     keep "class com.badlogic.** { *; }"
     keep "class org.lwjgl.** { *; }"
 }
+
+tasks.run.workingDir = rootDir

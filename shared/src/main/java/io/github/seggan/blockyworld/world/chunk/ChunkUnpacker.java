@@ -22,7 +22,6 @@ import io.github.seggan.blockyworld.util.MagicNumbers;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.util.SerialUtil;
 import io.github.seggan.blockyworld.world.World;
-import io.github.seggan.blockyworld.world.block.Block;
 import io.github.seggan.blockyworld.world.block.BlockData;
 import io.github.seggan.blockyworld.world.block.Material;
 import org.jetbrains.annotations.Nullable;
@@ -50,24 +49,24 @@ final class ChunkUnpacker {
             w = world;
         }
 
-        Chunk chunk = new Chunk(cPos, w);
-        Block[][] blocks = new Block[MagicNumbers.CHUNK_WIDTH][MagicNumbers.CHUNK_HEIGHT + 1];
+        Chunk chunk = new Chunk(cPos, w, false);
 
         for (int x = 0; x < MagicNumbers.CHUNK_WIDTH; x++) {
             for (int y = 0; y < MagicNumbers.CHUNK_HEIGHT; y++) {
                 if (!unpacker.tryUnpackNil()) {
                     Position pos = Position.unpack(unpacker);
                     Material material = Material.valueOf(unpacker.unpackString());
+                    if (material == Material.AIR) {
+                        System.out.println("air");
+                    }
                     BlockData data = null;
                     if (!unpacker.tryUnpackNil()) {
                         data = BlockData.unpack(unpacker);
                     }
-                    blocks[x][y] = new Block(material, pos, chunk, data);
+                    chunk.setBlock(material, pos, data);
                 }
             }
         }
-
-        chunk.blocks = blocks;
 
         return chunk;
     }

@@ -94,13 +94,16 @@ public final class ServerWorld extends World {
     public Chunk chunkAt(int pos) {
         return chunks.computeIfAbsent(pos, i -> {
             File file = new File(fldr, i + ".chunk");
-            if (!file.exists()) return new Chunk(i, this);
-            try {
-                MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(Files.readAllBytes(file.toPath()));
-                return Chunk.unpack(unpacker, this);
-            } catch (IOException e) {
-                throw Lombok.sneakyThrow(e);
+            if (file.exists()) {
+                try {
+                    MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(Files.readAllBytes(file.toPath()));
+                    return Chunk.unpack(unpacker, this);
+                } catch (IOException e) {
+                    throw Lombok.sneakyThrow(e);
+                }
             }
+
+            return new Chunk(i, this, true);
         });
     }
 
