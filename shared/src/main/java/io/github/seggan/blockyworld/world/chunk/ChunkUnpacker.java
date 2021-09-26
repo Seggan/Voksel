@@ -56,9 +56,6 @@ final class ChunkUnpacker {
                 if (!unpacker.tryUnpackNil()) {
                     Position pos = Position.unpack(unpacker);
                     Material material = Material.valueOf(unpacker.unpackString());
-                    if (material == Material.AIR) {
-                        System.out.println("air");
-                    }
                     BlockData data = null;
                     if (!unpacker.tryUnpackNil()) {
                         data = BlockData.unpack(unpacker);

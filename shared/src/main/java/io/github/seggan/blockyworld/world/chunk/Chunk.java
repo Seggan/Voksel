@@ -58,6 +58,15 @@ public final class Chunk {
         }
     }
 
+    public static Chunk unpack(@NonNull MessageUnpacker unpacker, @Nullable World world) throws IOException {
+        short version = unpacker.unpackShort();
+
+        return switch (version) {
+            case 0 -> ChunkUnpacker.unpack0(unpacker, world);
+            default -> throw new IllegalStateException("Unexpected value: " + version);
+        };
+    }
+
     public void setBlock(@NonNull Material material, int x, int y, @Nullable BlockData data) {
         setBlock(material, new Position(x, y), data);
     }
@@ -72,11 +81,7 @@ public final class Chunk {
         int y = position.y();
         if (x >= 0 && x < MagicNumbers.CHUNK_WIDTH && y >= 0 && y <= MagicNumbers.CHUNK_HEIGHT) {
             synchronized (bLock) {
-                if (block.material() == Material.AIR) {
-                    blocks[x][y] = null;
-                } else {
-                    blocks[x][y] = block;
-                }
+                blocks[x][y] = block;
             }
         }
     }
@@ -145,15 +150,6 @@ public final class Chunk {
                 }
             }
         }
-    }
-
-    public static Chunk unpack(@NonNull MessageUnpacker unpacker, @Nullable World world) throws IOException {
-        short version = unpacker.unpackShort();
-
-        return switch (version) {
-            case 0 -> ChunkUnpacker.unpack0(unpacker, world);
-            default -> throw new IllegalStateException("Unexpected value: " + version);
-        };
     }
 
     @Override
