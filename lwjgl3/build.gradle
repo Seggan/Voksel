@@ -64,7 +64,7 @@ task prepare(type: Copy) {
 }
 
 String dir = "$buildDir/libs/${shadowJar.archiveFile.get().asFile.name}"
-String obf = "$buildDir/libs/${rootProject.name} v${project.version}.jar"
+String obf = "$buildDir/libs/${rootProject.name}.jar"
 
 task packageJar(type: proguard.gradle.ProGuardTask) {
     group = "package"

@@ -26,7 +26,7 @@ configure(subprojects) {
 
 subprojects {
     version = '0.0.1'
-    ext.appName = 'BlockyWorld'
+    ext.appName = rootProject.name
     repositories {
         mavenLocal()
         mavenCentral()
@@ -37,4 +37,4 @@ subprojects {
     }
 }
 
-eclipse.project.name = 'BlockyWorld' + '-parent'
+eclipse.project.name = "${rootProject.name}-parent"

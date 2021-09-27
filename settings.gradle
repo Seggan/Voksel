@@ -1,1 +1,3 @@
 include 'server', 'shared', 'lwjgl3', 'core'
+
+rootProject.name = 'Voksel'

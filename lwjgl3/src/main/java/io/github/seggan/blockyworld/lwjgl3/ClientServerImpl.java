@@ -38,20 +38,20 @@ import java.util.concurrent.BlockingQueue;
 public class ClientServerImpl implements IServer {
 
     private final ClientRecvThread recvThread;
-    private final ClientSendThread sendThread;
     private final MainThread mainThread;
 
     private volatile boolean terminated;
     private final ServerSocket server;
+    private final Socket conn;
 
     public ClientServerImpl(BlockingQueue<Object> queue) throws IOException, InterruptedException {
         server = new ServerSocket(MagicNumbers.PORT);
         queue.add(new Object());
         try {
-            Socket socket = server.accept();
+            conn = server.accept();
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 try {
-                    socket.close();
+                    conn.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                     System.exit(1);
@@ -59,18 +59,16 @@ public class ClientServerImpl implements IServer {
             }));
 
             // this is in integrated server; no need for protocol check
-            socket.getInputStream().readNBytes(2);
-            socket.getOutputStream().write(new OKPacket().serialize());
+            conn.getInputStream().readNBytes(2);
+            conn.getOutputStream().write(new OKPacket().serialize());
 
-            recvThread = new ClientRecvThread(socket, ClientServerImpl.this);
-            sendThread = new ClientSendThread(socket);
+            recvThread = new ClientRecvThread(conn, ClientServerImpl.this);
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
             throw null;
         }
         mainThread = new MainThread(this);
-        sendThread.start();
         recvThread.start();
         mainThread.start();
     }
@@ -78,7 +76,10 @@ public class ClientServerImpl implements IServer {
     @Override
     public void send(@NonNull Packet packet, @Nullable InetAddress sendTo) {
         try {
-            sendThread.send(packet.serialize());
+            byte[] ser = packet.serialize();
+            synchronized (conn) {
+                conn.getOutputStream().write(ser);
+            }
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
@@ -88,7 +89,6 @@ public class ClientServerImpl implements IServer {
     @Override
     public void stopThread(@NonNull InetAddress address) {
         terminated = true;
-        sendThread.interrupt();
         recvThread.interrupt();
         mainThread.interrupt();
         try {
