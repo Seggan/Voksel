@@ -21,7 +21,7 @@ package io.github.seggan.blockyworld;
 import com.badlogic.gdx.Game;
 import io.github.seggan.blockyworld.server.packets.Packet;
 import io.github.seggan.blockyworld.server.packets.PacketType;
-import io.github.seggan.blockyworld.util.MagicNumbers;
+import io.github.seggan.blockyworld.util.MagicValues;
 
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -45,7 +45,7 @@ public class BlockyWorld extends Game {
     @Override
     public void create() {
         try {
-            socket = new Socket("localhost", MagicNumbers.PORT);
+            socket = new Socket("localhost", MagicValues.PORT);
             socket.getOutputStream().write(ByteBuffer.allocate(2).putShort(Packet.PROTOCOL_VERSION).array());
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 try {

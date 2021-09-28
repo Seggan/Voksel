@@ -34,7 +34,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import io.github.seggan.blockyworld.server.packets.BlockUpdatePacket;
 import io.github.seggan.blockyworld.server.packets.EntityMovePacket;
 import io.github.seggan.blockyworld.server.packets.Packet;
-import io.github.seggan.blockyworld.util.MagicNumbers;
+import io.github.seggan.blockyworld.util.MagicValues;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.util.Vector;
 import io.github.seggan.blockyworld.world.World;
@@ -94,19 +94,19 @@ class MainScreen implements Screen {
 
         Vector pos = worldToScreen(player.position());
 
-        camera.position.set((float) (pos.x() + (MagicNumbers.WORLD_SCREEN_RATIO / 2D)), (float) (pos.y() + MagicNumbers.WORLD_SCREEN_RATIO), 0);
+        camera.position.set((float) (pos.x() + (MagicValues.WORLD_SCREEN_RATIO / 2D)), (float) (pos.y() + MagicValues.WORLD_SCREEN_RATIO), 0);
         camera.update();
     }
 
     public Position worldToScreen(@NonNull Position position) {
-        int x = position.x() * MagicNumbers.WORLD_SCREEN_RATIO;
-        int y = position.y() * MagicNumbers.WORLD_SCREEN_RATIO + SCREEN_OFFSET_Y;
+        int x = position.x() * MagicValues.WORLD_SCREEN_RATIO;
+        int y = position.y() * MagicValues.WORLD_SCREEN_RATIO + SCREEN_OFFSET_Y;
         return new Position(x, y);
     }
 
     public Vector worldToScreen(@NonNull Vector location) {
-        double x = location.x() * MagicNumbers.WORLD_SCREEN_RATIO;
-        double y = location.y() * MagicNumbers.WORLD_SCREEN_RATIO + SCREEN_OFFSET_Y;
+        double x = location.x() * MagicValues.WORLD_SCREEN_RATIO;
+        double y = location.y() * MagicValues.WORLD_SCREEN_RATIO + SCREEN_OFFSET_Y;
         return new Vector(x, y);
     }
 
@@ -118,17 +118,17 @@ class MainScreen implements Screen {
     public void render(float delta) {
         doStuff();
 
-        ScreenUtils.clear(new Color(0x1EA1FFFF));
+        ScreenUtils.clear(Color.BLACK);
 
         Vector3 unprojected = camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
-        int mX = (int) Math.floor(unprojected.x / MagicNumbers.WORLD_SCREEN_RATIO);
-        int mY = (int) (unprojected.y / MagicNumbers.WORLD_SCREEN_RATIO - SCREEN_OFFSET_Y);
+        int mX = (int) Math.floor(unprojected.x / MagicValues.WORLD_SCREEN_RATIO);
+        int mY = (int) (unprojected.y / MagicValues.WORLD_SCREEN_RATIO - SCREEN_OFFSET_Y);
         Block hovering = world.blockAt(mX, mY);
 
         Vector pos = worldToScreen(player.position());
 
-        float x = (float) (pos.x() + (MagicNumbers.WORLD_SCREEN_RATIO));
-        float y = (float) (pos.y() + MagicNumbers.WORLD_SCREEN_RATIO);
+        float x = (float) (pos.x() + (MagicValues.WORLD_SCREEN_RATIO));
+        float y = (float) (pos.y() + MagicValues.WORLD_SCREEN_RATIO);
         camera.position.set(x, y, 0);
         camera.update();
 
@@ -139,7 +139,9 @@ class MainScreen implements Screen {
             renderer.render(chunk);
         }
 
-        batch.draw(selector, mX * MagicNumbers.WORLD_SCREEN_RATIO, mY * MagicNumbers.WORLD_SCREEN_RATIO);
+        batch.setColor(Color.WHITE);
+
+        batch.draw(selector, mX * MagicValues.WORLD_SCREEN_RATIO, mY * MagicValues.WORLD_SCREEN_RATIO);
 
         batch.draw(playerTex, x, y);
         batch.end();
@@ -210,7 +212,7 @@ class MainScreen implements Screen {
     }
 
     private void updateChunks() {
-        int chunkpos = (int) (player.position().x() / MagicNumbers.CHUNK_WIDTH);
+        int chunkpos = (int) (player.position().x() / MagicValues.CHUNK_WIDTH);
         for (Chunk chunk : world.chunks()) {
             if (Math.abs(chunk.position() - chunkpos) > LOAD_RADIUS) {
                 world.removeChunk(chunk.position());

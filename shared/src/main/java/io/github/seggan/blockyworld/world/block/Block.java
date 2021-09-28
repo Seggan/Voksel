@@ -18,7 +18,8 @@
 
 package io.github.seggan.blockyworld.world.block;
 
-import io.github.seggan.blockyworld.util.MagicNumbers;
+import com.google.common.base.Objects;
+import io.github.seggan.blockyworld.util.MagicValues;
 import io.github.seggan.blockyworld.util.NumberUtil;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.util.SerialUtil;
@@ -37,7 +38,6 @@ import lombok.NonNull;
 
 import java.io.IOException;
 
-@EqualsAndHashCode
 public class Block {
 
     @Getter
@@ -51,7 +51,7 @@ public class Block {
     private volatile BlockData blockData;
 
     public Block(@NonNull Material material, @NonNull Position position, @NonNull Chunk chunk, @Nullable BlockData data) {
-        Validate.inclusiveBetween(0, MagicNumbers.CHUNK_WIDTH, position.x());
+        Validate.inclusiveBetween(0, MagicValues.CHUNK_WIDTH, position.x());
         this.material = material;
         this.position = position;
         this.chunk = chunk;
@@ -135,5 +135,17 @@ public class Block {
     @Override
     public String toString() {
         return "Block(position=" + this.position() + ", chunk=" + this.chunk + ", material=" + this.material.name() + ")";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(material, position, chunk);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        else if (!(obj instanceof Block other)) return false;
+        else return this.material == other.material && this.position.equals(other.position);
     }
 }

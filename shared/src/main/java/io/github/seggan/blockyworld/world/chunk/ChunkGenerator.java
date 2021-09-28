@@ -19,7 +19,7 @@
 package io.github.seggan.blockyworld.world.chunk;
 
 import com.google.errorprone.annotations.ForOverride;
-import io.github.seggan.blockyworld.util.MagicNumbers;
+import io.github.seggan.blockyworld.util.MagicValues;
 import io.github.seggan.blockyworld.world.FastNoiseLite;
 import io.github.seggan.blockyworld.world.block.Block;
 import io.github.seggan.blockyworld.world.block.BlockData;
@@ -59,10 +59,10 @@ public final class ChunkGenerator {
     }
 
     protected void generateChunk(@NonNull Chunk chunk) {
-        for (int x = 0; x < MagicNumbers.CHUNK_WIDTH; x++) {
-            float n = noise.GetNoise(x + chunk().position() * MagicNumbers.CHUNK_WIDTH, 0);
-            float n2 = noise2.GetNoise(x + chunk.position() * MagicNumbers.CHUNK_WIDTH, 0);
-            int height = Math.min((int) (50 + 50 + 20 * (n + n2)), 255);
+        for (int x = 0; x < MagicValues.CHUNK_WIDTH; x++) {
+            float n = noise.GetNoise(x + chunk().position() * MagicValues.CHUNK_WIDTH, 0);
+            float n2 = noise2.GetNoise(x + chunk.position() * MagicValues.CHUNK_WIDTH, 0);
+            int height = Math.min((int) (MagicValues.SEA_LEVEL + 50 + 20 * (n + n2)), 255);
             for (int y = 0; y < height; y++) {
                 chunk.setBlock(Material.STONE, x, y, null);
             }

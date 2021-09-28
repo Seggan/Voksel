@@ -19,12 +19,11 @@
 package io.github.seggan.blockyworld.lwjgl3;
 
 import io.github.seggan.blockyworld.server.ClientRecvThread;
-import io.github.seggan.blockyworld.server.ClientSendThread;
 import io.github.seggan.blockyworld.server.IServer;
 import io.github.seggan.blockyworld.server.MainThread;
 import io.github.seggan.blockyworld.server.packets.OKPacket;
 import io.github.seggan.blockyworld.server.packets.Packet;
-import io.github.seggan.blockyworld.util.MagicNumbers;
+import io.github.seggan.blockyworld.util.MagicValues;
 import org.jetbrains.annotations.Nullable;
 
 import lombok.NonNull;
@@ -45,7 +44,7 @@ public class ClientServerImpl implements IServer {
     private final Socket conn;
 
     public ClientServerImpl(BlockingQueue<Object> queue) throws IOException, InterruptedException {
-        server = new ServerSocket(MagicNumbers.PORT);
+        server = new ServerSocket(MagicValues.PORT);
         queue.add(new Object());
         try {
             conn = server.accept();

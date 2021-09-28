@@ -21,7 +21,7 @@ package io.github.seggan.blockyworld.lwjgl3;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import io.github.seggan.blockyworld.BlockyWorld;
-import io.github.seggan.blockyworld.util.MagicNumbers;
+import io.github.seggan.blockyworld.util.MagicValues;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -76,7 +76,7 @@ public class Lwjgl3Launcher {
      * Checks to see if the port is available
      */
     private static boolean available() {
-        try(DatagramSocket ds = new DatagramSocket(MagicNumbers.PORT)) {
+        try(DatagramSocket ds = new DatagramSocket(MagicValues.PORT)) {
             ds.setReuseAddress(true);
             return true;
         } catch (IOException ignored) {

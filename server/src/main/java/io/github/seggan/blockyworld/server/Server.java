@@ -21,7 +21,7 @@ package io.github.seggan.blockyworld.server;
 import com.google.common.primitives.Bytes;
 import io.github.seggan.blockyworld.server.packets.OKPacket;
 import io.github.seggan.blockyworld.server.packets.Packet;
-import io.github.seggan.blockyworld.util.MagicNumbers;
+import io.github.seggan.blockyworld.util.MagicValues;
 import org.jetbrains.annotations.Nullable;
 
 import lombok.Getter;
@@ -53,7 +53,7 @@ public class Server implements IServer {
     }
 
     private void run() throws IOException {
-        ServerSocket server = new ServerSocket(MagicNumbers.PORT);
+        ServerSocket server = new ServerSocket(MagicValues.PORT);
         mainThread = new MainThread(this);
         mainThread.start();
 

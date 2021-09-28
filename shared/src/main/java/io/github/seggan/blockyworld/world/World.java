@@ -19,7 +19,7 @@
 package io.github.seggan.blockyworld.world;
 
 import com.google.common.collect.ImmutableSet;
-import io.github.seggan.blockyworld.util.MagicNumbers;
+import io.github.seggan.blockyworld.util.MagicValues;
 import io.github.seggan.blockyworld.util.NumberUtil;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.util.SerialUtil;
@@ -134,7 +134,7 @@ public abstract class World {
     public int highestBlockYAt(int x) {
         Chunk chunk = chunkAt(NumberUtil.worldToChunk(x));
         int inChunk = NumberUtil.worldToInChunk(x);
-        for (int y = MagicNumbers.CHUNK_HEIGHT; y >= 0; y--) {
+        for (int y = MagicValues.CHUNK_HEIGHT; y >= 0; y--) {
             if (chunk.getBlock(inChunk, y).material() != Material.AIR) {
                 return y;
             }
@@ -147,7 +147,7 @@ public abstract class World {
     public Block highestBlockAt(int x) {
         Chunk chunk = chunkAt(NumberUtil.worldToChunk(x));
         int inChunk = NumberUtil.worldToInChunk(x);
-        for (int y = MagicNumbers.CHUNK_HEIGHT; y >= 0; y--) {
+        for (int y = MagicValues.CHUNK_HEIGHT; y >= 0; y--) {
             Block b = chunk.getBlock(inChunk, y);
             if (b.material() != Material.AIR) {
                 return b;

@@ -18,7 +18,7 @@
 
 package io.github.seggan.blockyworld.world.chunk;
 
-import io.github.seggan.blockyworld.util.MagicNumbers;
+import io.github.seggan.blockyworld.util.MagicValues;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.util.SerialUtil;
 import io.github.seggan.blockyworld.world.World;
@@ -51,8 +51,8 @@ final class ChunkUnpacker {
 
         Chunk chunk = new Chunk(cPos, w, false);
 
-        for (int x = 0; x < MagicNumbers.CHUNK_WIDTH; x++) {
-            for (int y = 0; y < MagicNumbers.CHUNK_HEIGHT; y++) {
+        for (int x = 0; x < MagicValues.CHUNK_WIDTH; x++) {
+            for (int y = 0; y < MagicValues.CHUNK_HEIGHT; y++) {
                 if (!unpacker.tryUnpackNil()) {
                     Position pos = Position.unpack(unpacker);
                     Material material = Material.valueOf(unpacker.unpackString());

@@ -19,7 +19,7 @@
 package io.github.seggan.blockyworld.server;
 
 import io.github.seggan.blockyworld.server.packets.EntityMovePacket;
-import io.github.seggan.blockyworld.util.MagicNumbers;
+import io.github.seggan.blockyworld.util.MagicValues;
 import io.github.seggan.blockyworld.util.NumberUtil;
 import io.github.seggan.blockyworld.util.Vector;
 import io.github.seggan.blockyworld.world.ServerWorld;
@@ -108,7 +108,7 @@ public final class Ticker implements Runnable {
             }
         }
 
-        Vector deltaGravity = MagicNumbers.GRAVITY.copy().multiply(delta);
+        Vector deltaGravity = MagicValues.GRAVITY.copy().multiply(delta);
         deltaVector = dir.copy().add(deltaGravity).multiply(delta);
         Vector newPos = entity.position().copy().add(deltaVector);
         double newPosX = newPos.x();

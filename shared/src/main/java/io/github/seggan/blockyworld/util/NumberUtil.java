@@ -29,15 +29,15 @@ public final class NumberUtil {
     public static final double EPSILON = 1e-6;
 
     public static Position chunkToWorld(int chunkPos, @NonNull Position position) {
-        return new Position(chunkPos * MagicNumbers.CHUNK_WIDTH + position.x(), position.y());
+        return new Position(chunkPos * MagicValues.CHUNK_WIDTH + position.x(), position.y());
     }
 
     public static int worldToInChunk(int x) {
-        return ((x % MagicNumbers.CHUNK_WIDTH) + MagicNumbers.CHUNK_WIDTH) % MagicNumbers.CHUNK_WIDTH;
+        return ((x % MagicValues.CHUNK_WIDTH) + MagicValues.CHUNK_WIDTH) % MagicValues.CHUNK_WIDTH;
     }
 
     public static int worldToChunk(int pos) {
-        return Math.floorDiv(pos, MagicNumbers.CHUNK_WIDTH);
+        return Math.floorDiv(pos, MagicValues.CHUNK_WIDTH);
     }
 
     public static boolean isDoubleZero(double d) {

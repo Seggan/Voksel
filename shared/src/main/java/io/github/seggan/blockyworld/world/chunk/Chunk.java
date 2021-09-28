@@ -18,7 +18,7 @@
 
 package io.github.seggan.blockyworld.world.chunk;
 
-import io.github.seggan.blockyworld.util.MagicNumbers;
+import io.github.seggan.blockyworld.util.MagicValues;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.util.SerialUtil;
 import io.github.seggan.blockyworld.world.World;
@@ -49,7 +49,7 @@ public final class Chunk {
     private final World world;
 
     public Chunk(int position, @NonNull World world, boolean generate) {
-        this.blocks = new Block[MagicNumbers.CHUNK_WIDTH][MagicNumbers.CHUNK_HEIGHT + 1];
+        this.blocks = new Block[MagicValues.CHUNK_WIDTH][MagicValues.CHUNK_HEIGHT + 1];
         this.position = position;
         this.world = world;
         if (generate) {
@@ -79,7 +79,7 @@ public final class Chunk {
         Position position = block.position();
         int x = position.x();
         int y = position.y();
-        if (x >= 0 && x < MagicNumbers.CHUNK_WIDTH && y >= 0 && y <= MagicNumbers.CHUNK_HEIGHT) {
+        if (x >= 0 && x < MagicValues.CHUNK_WIDTH && y >= 0 && y <= MagicValues.CHUNK_HEIGHT) {
             synchronized (bLock) {
                 blocks[x][y] = block;
             }
@@ -108,7 +108,7 @@ public final class Chunk {
 
     @NotNull
     public Block getBlock(int x, int y) {
-        if (x >= 0 && x < MagicNumbers.CHUNK_WIDTH && y >= 0 && y <= MagicNumbers.CHUNK_HEIGHT) {
+        if (x >= 0 && x < MagicValues.CHUNK_WIDTH && y >= 0 && y <= MagicValues.CHUNK_HEIGHT) {
             synchronized (bLock) {
                 Block b = blocks[x][y];
                 return b == null ? new Block(Material.AIR, x, y, this, null) : b;

@@ -18,37 +18,40 @@
 
 package io.github.seggan.blockyworld;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Frustum;
-import io.github.seggan.blockyworld.util.MagicNumbers;
+import io.github.seggan.blockyworld.util.MagicValues;
 import io.github.seggan.blockyworld.util.Position;
 import io.github.seggan.blockyworld.world.block.Block;
+import io.github.seggan.blockyworld.world.block.BlockSide;
 import io.github.seggan.blockyworld.world.block.Material;
 import io.github.seggan.blockyworld.world.chunk.Chunk;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.NonNull;
 
 import java.util.EnumMap;
 import java.util.Map;
 
-@Getter
 public final class Renderer {
 
-    @Getter(AccessLevel.NONE)
     private final Map<Material, Texture> cache = new EnumMap<>(Material.class);
+    private final Object2IntMap<Position> lighting = new Object2IntOpenHashMap<>();
 
     private final MainScreen screen;
+    private final SpriteBatch batch;
 
     public Renderer(@NotNull MainScreen screen) {
         this.screen = screen;
+        this.batch = screen.batch();
     }
 
     public void render(@NonNull Block block, int offset) {
         Material material = block.material();
-        if (material == Material.AIR) return;
         if (!cache.containsKey(material)) {
             cache.put(material, TextureUtils.load("blocks/" + material.defaultTexture() + ".png"));
         }
@@ -59,18 +62,28 @@ public final class Renderer {
         Frustum frustum = screen.viewport().getCamera().frustum;
         if (frustum.pointInFrustum(x, y, 0) ||
             frustum.pointInFrustum(
-                x + MagicNumbers.WORLD_SCREEN_RATIO,
-                y + MagicNumbers.WORLD_SCREEN_RATIO,
+                x + MagicValues.WORLD_SCREEN_RATIO,
+                y + MagicValues.WORLD_SCREEN_RATIO,
                 0
-            ) || frustum.pointInFrustum(x + MagicNumbers.WORLD_SCREEN_RATIO, y, 0) ||
-            frustum.pointInFrustum(x, y + MagicNumbers.WORLD_SCREEN_RATIO, 0)
+            ) || frustum.pointInFrustum(x + MagicValues.WORLD_SCREEN_RATIO, y, 0) ||
+            frustum.pointInFrustum(x, y + MagicValues.WORLD_SCREEN_RATIO, 0)
         ) {
-            screen.batch().draw(cache.get(material), x, y);
+            int light = lighting.getInt(block.position());
+            if (light == 0) return;
+
+            batch.setColor(switch (light) {
+                case 1 -> Color.DARK_GRAY;
+                case 2 -> Color.LIGHT_GRAY;
+                case 3 -> Color.WHITE;
+                default -> throw new IllegalStateException("Unexpected lighting value: " + light);
+            });
+            batch.draw(cache.get(material), x, y);
         }
     }
 
     public void render(@NonNull Chunk chunk) {
-        int offset = chunk.position() * MagicNumbers.CHUNK_WIDTH * MagicNumbers.WORLD_SCREEN_RATIO;
+        recalculateLighting(chunk);
+        int offset = chunk.position() * MagicValues.CHUNK_WIDTH * MagicValues.WORLD_SCREEN_RATIO;
         for (Block b : chunk.blocks()) {
             render(b, offset);
         }
@@ -85,5 +98,40 @@ public final class Renderer {
             texture.dispose();
         }
         cache.clear();
+    }
+
+    private void recalculateLighting(Chunk chunk) {
+        /*
+        lighting.clear();
+
+        for (int x = 0; x < MagicValues.CHUNK_WIDTH; x++) {
+            for (int y = 0; y < MagicValues.CHUNK_HEIGHT; y++) {
+                Block b = chunk.getBlock(x, y);
+                Position position = b.position();
+                if (b.material() == Material.AIR) {
+                    putLighting(position, 3);
+                    for (BlockSide side : BlockSide.values()) {
+                        Block b1 = b.relativeToThis(side);
+                        for (BlockSide side1 : BlockSide.values()) {
+                            Block b2 = b.relativeToThis(side1);
+                            for (BlockSide side2 : BlockSide.values()) {
+                                Block b3 = b.relativeToThis(side2);
+                                putLighting(b3.position(), 1);
+                            }
+                            putLighting(b2.position(), 2);
+                        }
+                        putLighting(b1.position(), 3);
+                    }
+                }
+            }
+        }
+         */
+    }
+
+    private void putLighting(Position position, int level) {
+        lighting.computeInt(position, (k, v) -> {
+            if (v == null) return level;
+            else return Math.min(level + v, 3);
+        });
     }
 }

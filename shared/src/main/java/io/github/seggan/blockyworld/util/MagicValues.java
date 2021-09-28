@@ -21,12 +21,14 @@ package io.github.seggan.blockyworld.util;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
-public final class MagicNumbers {
+public final class MagicValues {
 
     public static final int WORLD_SCREEN_RATIO = 32;
 
     public static final int CHUNK_HEIGHT = 256;
     public static final int CHUNK_WIDTH = 16;
+
+    public static final int SEA_LEVEL = 30;
 
     public static final Vector GRAVITY = new Vector(0, -8);
 

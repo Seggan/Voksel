@@ -21,7 +21,7 @@ package io.github.seggan.blockyworld;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import io.github.seggan.blockyworld.util.MagicNumbers;
+import io.github.seggan.blockyworld.util.MagicValues;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
@@ -32,8 +32,8 @@ public class TextureUtils {
     public static Texture load(@NonNull String path, int widthMultiplier, int heightMultiplier) {
         Pixmap orig = new Pixmap(Gdx.files.internal(path));
         Pixmap newPix = new Pixmap(
-            MagicNumbers.WORLD_SCREEN_RATIO * widthMultiplier,
-            MagicNumbers.WORLD_SCREEN_RATIO * heightMultiplier,
+            MagicValues.WORLD_SCREEN_RATIO * widthMultiplier,
+            MagicValues.WORLD_SCREEN_RATIO * heightMultiplier,
             orig.getFormat()
         );
         newPix.drawPixmap(orig, 0, 0, orig.getWidth(), orig.getHeight(), 0, 0, newPix.getWidth(), newPix.getHeight());
