@@ -119,6 +119,7 @@ class MainScreen implements Screen {
         int mY = (int) (unprojected.y / MagicValues.WORLD_SCREEN_RATIO);
         Block hovering = world.blockAt(mX, mY);
 
+        Vector2 playerPos = player.body().getPosition();
         Vector2 pos = NumberUtil.bodyToScreen(player);
 
         batch.setProjectionMatrix(camera.combined);
@@ -140,17 +141,16 @@ class MainScreen implements Screen {
         Vector2 v = player.body().getLinearVelocity();
         if ((Gdx.input.isKeyPressed(Input.Keys.SPACE) || Gdx.input.isKeyPressed(Input.Keys.W)) &&
            v.y == 0) {
-            player.body().applyLinearImpulse(0, 300, pos.x, pos.y, true);
+            player.body().applyLinearImpulse(0, 300, playerPos.x, playerPos.y, true);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.D) && v.x < Player.MAX_SPEED) {
-            player.body().applyLinearImpulse(10, 0, pos.x, pos.y, true);
+            player.body().applyLinearImpulse(10, 0, playerPos.x, playerPos.y, true);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.A) && v.x > -Player.MAX_SPEED) {
-            player.body().applyLinearImpulse(-10, 0, pos.x, pos.y, true);
+            player.body().applyLinearImpulse(-10, 0, playerPos.x, playerPos.y, true);
         }
 
         camera.position.set(pos.x, pos.y, 0);
-        player.body().applyForceToCenter(v, true);
         camera.update();
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
@@ -165,10 +165,10 @@ class MainScreen implements Screen {
             if (hovering.material() == Material.AIR) {
                 Rectangle selector = new Rectangle(mX, mY, 1, 1);
                 Rectangle playerRect = new Rectangle(
-                    pos.x,
-                    pos.y,
+                    playerPos.x,
+                    playerPos.y,
                     1,
-                    1.9F
+                    2
                 );
                 if (!selector.overlaps(playerRect)) {
                     hovering.material(Material.STONE);
