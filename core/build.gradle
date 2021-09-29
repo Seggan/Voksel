@@ -2,10 +2,18 @@
 eclipse.project.name = appName + '-core'
 
 dependencies {
-	api project(':shared')
-
-	annotationProcessor 'org.projectlombok:lombok:1.18.20'
 
 	api "com.badlogicgames.gdx:gdx:$gdxVersion"
-	api "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
+	implementation "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
+	implementation "com.badlogicgames.box2dlights:box2dlights:1.5"
+
+	implementation 'org.apache.commons:commons-lang3:3.12.0'
+	implementation 'com.google.guava:guava:31.0-jre'
+	implementation 'it.unimi.dsi:fastutil:8.5.6'
+	implementation 'org.jetbrains:annotations:22.0.0'
+	implementation 'org.msgpack:msgpack-core:0.9.0'
+
+	compileOnly 'org.projectlombok:lombok:1.18.20'
+	annotationProcessor 'org.projectlombok:lombok:1.18.20'
+
 }
