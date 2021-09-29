@@ -111,19 +111,23 @@ public final class Chunk {
         if (x >= 0 && x < MagicValues.CHUNK_WIDTH && y >= 0 && y <= MagicValues.CHUNK_HEIGHT) {
             synchronized (bLock) {
                 Block b = blocks[x][y];
-                return b == null ? new Block(Material.AIR, x, y, this, null) : b;
+                if (b == null) {
+                    Block air = new Block(Material.AIR, x, y, this, null);
+                    setBlock(air);
+                    return air;
+                }
+
+                return b;
             }
         }
 
-        return new Block(Material.AIR, x, y, this, null);
-        /*
+        //return new Block(Material.AIR, x, y, this, null);
+
         throw new IndexOutOfBoundsException(String.format(
             "Chunk index out of bounds: %d, %d",
             x,
             y
         ));
-
-         */
     }
 
     @NotNull

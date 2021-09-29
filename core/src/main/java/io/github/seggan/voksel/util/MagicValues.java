@@ -28,11 +28,14 @@ public final class MagicValues {
     public static final int WORLD_SCREEN_RATIO = 32;
 
     public static final int CHUNK_HEIGHT = 256;
-    public static final int CHUNK_WIDTH = 16;
+    public static final int CHUNK_WIDTH = 24;
 
     public static final int SEA_LEVEL = 30;
 
     public static final Vector2 GRAVITY = new Vector2(0, -8);
+
+    public static boolean DEBUG = false;
+    public static final float TIME_STEP = 1 / 60F;
 
     public static final int PORT = 16255;
 }

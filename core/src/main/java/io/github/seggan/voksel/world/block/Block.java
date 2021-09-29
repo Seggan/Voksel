@@ -72,7 +72,7 @@ public class Block implements Disposable, BodyHolder {
 
         shape.dispose();
 
-        this.body.setActive(material != Material.AIR);
+        this.body.setActive(!this.isPassable());
     }
 
     public Block(@NonNull Material material, int x, int y, @NonNull Chunk chunk) {
@@ -108,10 +108,9 @@ public class Block implements Disposable, BodyHolder {
         }
     }
 
-    public Block material(@NonNull Material material) {
+    public void material(@NonNull Material material) {
         this.material = material;
-        body.setActive(material != Material.AIR);
-        return this;
+        body.setActive(!this.isPassable());
     }
 
     @NotNull

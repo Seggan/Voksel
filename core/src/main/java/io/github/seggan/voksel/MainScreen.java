@@ -50,7 +50,7 @@ import lombok.NonNull;
 @Getter
 class MainScreen implements Screen {
 
-    private static final int LOAD_RADIUS = 5;
+    private static final int LOAD_RADIUS = 1;
 
     @Getter
     private static MainScreen inst;
@@ -64,9 +64,9 @@ class MainScreen implements Screen {
     private final Texture playerTex;
     private final Texture selector;
     private final BitmapFont font = new BitmapFont();
-    private int SCREEN_OFFSET_Y;
+
     private float delta = 0;
-    private int speed = 1;
+    private float stepDelta = 0;
 
     private final RayHandler rayHandler;
 
@@ -95,14 +95,8 @@ class MainScreen implements Screen {
 
     public Position worldToScreen(@NonNull Position position) {
         int x = position.x() * MagicValues.WORLD_SCREEN_RATIO;
-        int y = position.y() * MagicValues.WORLD_SCREEN_RATIO + SCREEN_OFFSET_Y;
+        int y = position.y() * MagicValues.WORLD_SCREEN_RATIO;
         return new Position(x, y);
-    }
-
-    public Vector2 worldToScreen(@NonNull Vector2 location) {
-        float x = location.x * MagicValues.WORLD_SCREEN_RATIO;
-        float y = location.y * MagicValues.WORLD_SCREEN_RATIO + SCREEN_OFFSET_Y;
-        return new Vector2(x, y);
     }
 
     @Override
@@ -113,12 +107,12 @@ class MainScreen implements Screen {
     public void render(float delta) {
         ScreenUtils.clear(Color.BLACK);
 
-        Box2DDebugRenderer debugRenderer = new Box2DDebugRenderer(true, true, true, false, true, true);
-        Matrix4 debugMatrix = new Matrix4(camera.combined);
-        debugMatrix.scale(MagicValues.WORLD_SCREEN_RATIO, MagicValues.WORLD_SCREEN_RATIO, 0);
-        debugRenderer.render(world.box2dWorld(), debugMatrix);
-
-        world.box2dWorld().step(delta, 6, 4);
+        if (MagicValues.DEBUG) {
+            Box2DDebugRenderer debugRenderer = new Box2DDebugRenderer(true, true, true, false, true, true);
+            Matrix4 debugMatrix = new Matrix4(camera.combined);
+            debugMatrix.scale(MagicValues.WORLD_SCREEN_RATIO, MagicValues.WORLD_SCREEN_RATIO, 0);
+            debugRenderer.render(world.box2dWorld(), debugMatrix);
+        }
 
         Vector3 unprojected = camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
         int mX = (int) Math.floor(unprojected.x / MagicValues.WORLD_SCREEN_RATIO);
@@ -130,35 +124,38 @@ class MainScreen implements Screen {
         batch.setProjectionMatrix(camera.combined);
 
         batch.begin();
-        for (Chunk chunk : world.chunks()) {
-            //renderer.render(chunk);
+        if (!MagicValues.DEBUG) {
+            for (Chunk chunk : world.chunks()) {
+                renderer.render(chunk);
+            }
         }
 
         batch.setColor(Color.WHITE);
 
         batch.draw(selector, mX * MagicValues.WORLD_SCREEN_RATIO, mY * MagicValues.WORLD_SCREEN_RATIO);
 
-        //batch.draw(playerTex, x, y);
+        if (!MagicValues.DEBUG) batch.draw(playerTex, pos.x, pos.y);
         batch.end();
 
-        Vector2 v = new Vector2(0, 0);
+        Vector2 v = player.body().getLinearVelocity();
         if ((Gdx.input.isKeyPressed(Input.Keys.SPACE) || Gdx.input.isKeyPressed(Input.Keys.W)) &&
-           player.body().getLinearVelocity().y == 0) {
+           v.y == 0) {
             player.body().applyLinearImpulse(0, 300, pos.x, pos.y, true);
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-            v.add(400, 0);
+        if (Gdx.input.isKeyPressed(Input.Keys.D) && v.x < Player.MAX_SPEED) {
+            player.body().applyLinearImpulse(10, 0, pos.x, pos.y, true);
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            v.add(-400, 0);
+        if (Gdx.input.isKeyPressed(Input.Keys.A) && v.x > -Player.MAX_SPEED) {
+            player.body().applyLinearImpulse(-10, 0, pos.x, pos.y, true);
         }
 
-        //camera.position.add(v.x, v.y, 0);
         camera.position.set(pos.x, pos.y, 0);
         player.body().applyForceToCenter(v, true);
         camera.update();
 
-        //player.body().applyForceToCenter(v, true);
+        if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
+            MagicValues.DEBUG = !MagicValues.DEBUG;
+        }
 
         if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
             if (hovering.material() != Material.AIR) {
@@ -168,8 +165,8 @@ class MainScreen implements Screen {
             if (hovering.material() == Material.AIR) {
                 Rectangle selector = new Rectangle(mX, mY, 1, 1);
                 Rectangle playerRect = new Rectangle(
-                    pos.x + 1.1F,
-                    pos.y + 1,
+                    pos.x,
+                    pos.y,
                     1,
                     1.9F
                 );
@@ -184,6 +181,8 @@ class MainScreen implements Screen {
             this.delta = 0;
             updateChunks();
         }
+
+        doPhysicsStep(delta);
     }
 
     @Override
@@ -224,6 +223,17 @@ class MainScreen implements Screen {
                     System.out.println("Loaded chunk " + pos);
                 }
             }
+        }
+    }
+
+    private void doPhysicsStep(float deltaTime) {
+        // fixed time step
+        // max frame time to avoid spiral of death (on slow devices)
+        float frameTime = Math.min(deltaTime, 0.25f);
+        stepDelta += frameTime;
+        while (stepDelta >= MagicValues.TIME_STEP) {
+            world.box2dWorld().step(MagicValues.TIME_STEP, 6, 4);
+            stepDelta -= MagicValues.TIME_STEP;
         }
     }
 }

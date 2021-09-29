@@ -18,12 +18,13 @@
 
 package io.github.seggan.voksel.world.entity;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
-import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
+import io.github.seggan.voksel.util.BodyEditorLoader;
 import org.jetbrains.annotations.NotNull;
 
 import lombok.NonNull;
@@ -31,6 +32,8 @@ import lombok.NonNull;
 import java.util.UUID;
 
 public final class Player extends Entity {
+
+    public static final int MAX_SPEED = 20;
 
     public Player(@NonNull World world, @NonNull Vector2 pos) {
         super(world, pos, UUID.randomUUID());
@@ -44,20 +47,17 @@ public final class Player extends Entity {
         bodyDef.type = BodyDef.BodyType.DynamicBody;
         bodyDef.fixedRotation = true;
 
-        PolygonShape shape = new PolygonShape();
-        shape.setAsBox(0.5F, 1);
-
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.density = 30;
-        fixtureDef.friction = 0.5F;
+        fixtureDef.friction = 1;
         fixtureDef.restitution = 0.1F;
-        fixtureDef.shape = shape;
 
         Body body = this.world.createBody(bodyDef);
-        body.createFixture(fixtureDef);
-        body.setAwake(true);
 
-        shape.dispose();
+        BodyEditorLoader loader = new BodyEditorLoader(Gdx.files.internal("models/player.json"));
+        loader.attachFixture(body, "player", fixtureDef, 1);
+
+        body.setAwake(true);
 
         return body;
     }

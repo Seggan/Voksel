@@ -1,0 +1,76 @@
+{
+  "rigidBodies": [
+    {
+      "name": "player",
+      "imagePath": "player.png",
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "polygons": [
+        [
+          {
+            "x": 1,
+            "y": 0.5
+          },
+          {
+            "x": 1,
+            "y": 2
+          },
+          {
+            "x": 0,
+            "y": 2
+          },
+          {
+            "x": 0,
+            "y": 0.5
+          }
+        ]
+      ],
+      "circles": [
+        {
+          "cx": 0.5,
+          "cy": 0.5,
+          "r": 0.5
+        }
+      ],
+      "shapes": [
+        {
+          "type": "POLYGON",
+          "vertices": [
+            {
+              "x": 0,
+              "y": 0.5
+            },
+            {
+              "x": 0,
+              "y": 2
+            },
+            {
+              "x": 1,
+              "y": 2
+            },
+            {
+              "x": 1,
+              "y": 0.5
+            }
+          ]
+        },
+        {
+          "type": "CIRCLE",
+          "vertices": [
+            {
+              "x": 0.5,
+              "y": 0.5
+            },
+            {
+              "x": 0.5,
+              "y": 0.5
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "dynamicObjects": []
+}

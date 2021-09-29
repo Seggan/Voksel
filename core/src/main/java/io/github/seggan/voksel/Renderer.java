@@ -50,6 +50,8 @@ public final class Renderer {
 
     public void render(@NonNull Block block, int offset) {
         Material material = block.material();
+        if (material == Material.AIR) return;
+
         if (!cache.containsKey(material)) {
             cache.put(material, TextureUtils.load("blocks/" + material.defaultTexture() + ".png"));
         }
