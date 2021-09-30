@@ -18,6 +18,7 @@
 
 package io.github.seggan.voksel;
 
+import box2dLight.PointLight;
 import box2dLight.RayHandler;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -35,6 +36,7 @@ import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import io.github.seggan.voksel.util.FilterValues;
 import io.github.seggan.voksel.util.MagicValues;
 import io.github.seggan.voksel.util.NumberUtil;
 import io.github.seggan.voksel.util.Position;
@@ -48,7 +50,7 @@ import lombok.Getter;
 import lombok.NonNull;
 
 @Getter
-class MainScreen implements Screen {
+public class MainScreen implements Screen {
 
     private static final int LOAD_RADIUS = 1;
 
@@ -69,6 +71,7 @@ class MainScreen implements Screen {
     private float stepDelta = 0;
 
     private final RayHandler rayHandler;
+    private final PointLight sun;
 
     MainScreen() {
         inst = this;
@@ -80,10 +83,21 @@ class MainScreen implements Screen {
         renderer = new Renderer(this);
 
         world = new VokselWorld("world");
-        world.chunkAt(0);
         rayHandler = new RayHandler(world.box2dWorld());
+        rayHandler.setAmbientLight(0.1F);
+        RayHandler.useDiffuseLight(true);
+        RayHandler.setGammaCorrection(true);
+        rayHandler.setCulling(true);
+        rayHandler.setBlur(true);
+        rayHandler.setBlurNum(1);
+        rayHandler.setShadows(true);
+        world.chunkAt(0);
 
         player = new Player(world.box2dWorld(), new Vector2(0, world.highestBlockYAt(0) + 2));
+
+        sun = new PointLight(rayHandler, 500, Color.WHITE, 500, player.body().getPosition().x, player.body().getPosition().y + 20);
+        sun.setSoftnessLength(4);
+        sun.setContactFilter(FilterValues.SUN_CATEGORY, (short) 0, FilterValues.SUN_MASK);
 
         playerTex = TextureUtils.load("player.png", 1, 2);
         selector = TextureUtils.load("selector.png");
@@ -105,13 +119,13 @@ class MainScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        ScreenUtils.clear(Color.BLACK);
+        ScreenUtils.clear(new Color(0x91faeeff));
 
+        Matrix4 scaledMatrix = new Matrix4(camera.combined);
+        scaledMatrix.scale(MagicValues.WORLD_SCREEN_RATIO, MagicValues.WORLD_SCREEN_RATIO, 0);
         if (MagicValues.DEBUG) {
             Box2DDebugRenderer debugRenderer = new Box2DDebugRenderer(true, true, true, false, true, true);
-            Matrix4 debugMatrix = new Matrix4(camera.combined);
-            debugMatrix.scale(MagicValues.WORLD_SCREEN_RATIO, MagicValues.WORLD_SCREEN_RATIO, 0);
-            debugRenderer.render(world.box2dWorld(), debugMatrix);
+            debugRenderer.render(world.box2dWorld(), scaledMatrix);
         }
 
         Vector3 unprojected = camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
@@ -174,7 +188,25 @@ class MainScreen implements Screen {
                     hovering.material(Material.STONE);
                 }
             }
+        } else if (Gdx.input.isButtonPressed(Input.Buttons.MIDDLE)) {
+            if (hovering.material() == Material.AIR) {
+                Rectangle selector = new Rectangle(mX, mY, 1, 1);
+                Rectangle playerRect = new Rectangle(
+                    playerPos.x,
+                    playerPos.y,
+                    1,
+                    2
+                );
+                if (!selector.overlaps(playerRect)) {
+                    hovering.material(Material.LIGHT);
+                }
+            }
         }
+
+        sun.setPosition(playerPos.x, Math.max(playerPos.y, MagicValues.SEA_LEVEL) + 20);
+
+        rayHandler.setCombinedMatrix(scaledMatrix);
+        rayHandler.updateAndRender();
 
         this.delta += delta;
         if (this.delta > 1 / 20f) {

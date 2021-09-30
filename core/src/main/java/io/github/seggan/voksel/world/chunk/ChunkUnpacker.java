@@ -54,7 +54,7 @@ final class ChunkUnpacker {
             for (int y = 0; y < MagicValues.CHUNK_HEIGHT; y++) {
                 if (!unpacker.tryUnpackNil()) {
                     Position pos = Position.unpack(unpacker);
-                    Material material = Material.valueOf(unpacker.unpackString());
+                    Material material = Material.valueOfOrDefault(unpacker.unpackString());
                     BlockData data = null;
                     if (!unpacker.tryUnpackNil()) {
                         data = BlockData.unpack(unpacker);

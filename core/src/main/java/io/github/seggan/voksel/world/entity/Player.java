@@ -25,6 +25,7 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 import io.github.seggan.voksel.util.BodyEditorLoader;
+import io.github.seggan.voksel.util.FilterValues;
 import org.jetbrains.annotations.NotNull;
 
 import lombok.NonNull;
@@ -51,6 +52,9 @@ public final class Player extends Entity {
         fixtureDef.density = 30;
         fixtureDef.friction = 1;
         fixtureDef.restitution = 0.1F;
+
+        fixtureDef.filter.categoryBits = FilterValues.ENTITY_CATEGORY;
+        fixtureDef.filter.maskBits = FilterValues.ENTITY_MASK;
 
         Body body = this.world.createBody(bodyDef);
 

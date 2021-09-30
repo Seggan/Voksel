@@ -18,14 +18,44 @@
 
 package io.github.seggan.voksel.world.block;
 
-import lombok.AllArgsConstructor;
+import org.jetbrains.annotations.NotNull;
+
 import lombok.Getter;
+import lombok.NonNull;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Getter
-@AllArgsConstructor
 public enum Material {
     AIR("air"),
-    STONE("stone");
+    STONE("stone"),
+    UNKNOWN("unknown"),
+    LIGHT("light", true);
 
-    private String defaultTexture;
+    private static final Map<String, Material> valueMap;
+
+    static {
+        valueMap = new HashMap<>();
+        for (Material material : values()) {
+            valueMap.put(material.name(), material);
+        }
+    }
+
+    private final String defaultTexture;
+    private final boolean transparent;
+
+    Material(@NonNull String defaultTexture, boolean transparent) {
+        this.defaultTexture = defaultTexture;
+        this.transparent = transparent;
+    }
+
+    Material(@NonNull String defaultTexture) {
+        this(defaultTexture, false);
+    }
+
+    @NotNull
+    public static Material valueOfOrDefault(@NonNull String name) {
+        return valueMap.getOrDefault(name, UNKNOWN);
+    }
 }

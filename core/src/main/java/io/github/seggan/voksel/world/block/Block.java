@@ -18,12 +18,17 @@
 
 package io.github.seggan.voksel.world.block;
 
+import box2dLight.PointLight;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.utils.Disposable;
 import com.google.common.base.Objects;
+import io.github.seggan.voksel.MainScreen;
+import io.github.seggan.voksel.util.FilterValues;
 import io.github.seggan.voksel.util.MagicValues;
 import io.github.seggan.voksel.util.NumberUtil;
 import io.github.seggan.voksel.util.Position;
@@ -39,6 +44,7 @@ import org.msgpack.core.MessageUnpacker;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 import java.io.IOException;
 
@@ -47,11 +53,12 @@ public class Block implements Disposable, BodyHolder {
 
     private final Position position;
     private final Chunk chunk;
+    private final Body body;
     private Material material;
     @Nullable
-    private volatile BlockData blockData;
-
-    private final Body body;
+    private BlockData blockData;
+    @Setter
+    private PointLight light;
 
     public Block(@NonNull Material material, @NonNull Position position, @NonNull Chunk chunk, @Nullable BlockData data) {
         Validate.inclusiveBetween(0, MagicValues.CHUNK_WIDTH, position.x());
@@ -68,9 +75,8 @@ public class Block implements Disposable, BodyHolder {
         shape.setAsBox(0.5F, 0.5F);
 
         this.body = chunk.world().box2dWorld().createBody(bodyDef);
-        this.body.createFixture(shape, 0);
 
-        shape.dispose();
+        update();
 
         this.body.setActive(!this.isPassable());
     }
@@ -111,6 +117,7 @@ public class Block implements Disposable, BodyHolder {
     public void material(@NonNull Material material) {
         this.material = material;
         body.setActive(!this.isPassable());
+        update();
     }
 
     @NotNull
@@ -126,7 +133,7 @@ public class Block implements Disposable, BodyHolder {
 
     public boolean isPassable() {
         Material material = this.material;
-        return material == Material.AIR;
+        return material == Material.AIR || material == Material.LIGHT;
     }
 
     @Override
@@ -150,4 +157,39 @@ public class Block implements Disposable, BodyHolder {
     public void dispose() {
         this.chunk.world().box2dWorld().destroyBody(body);
     }
+
+    private void update() {
+        if (material != Material.LIGHT && light != null) {
+            light.remove();
+            light = null;
+        } else if (material == Material.LIGHT) {
+            Position converted = NumberUtil.chunkToWorld(this.chunk.position(), this.position);
+            light = new PointLight(MainScreen.inst().rayHandler(), 20, Color.YELLOW, 15, converted.x(), converted.y());
+            light.setSoftnessLength(3);
+            light.setContactFilter(FilterValues.SUN_CATEGORY, (short) 0, FilterValues.SUN_MASK);
+        }
+
+        this.body.getFixtureList().forEach(this.body::destroyFixture);
+        PolygonShape shape = new PolygonShape();
+        shape.setAsBox(0.5F, 0.5F);
+
+        FixtureDef def = new FixtureDef();
+        def.density = 0;
+        def.restitution = 0;
+        def.shape = shape;
+
+        def.filter.maskBits = FilterValues.BLOCK_MASK;
+
+        def.filter.categoryBits = FilterValues.BLOCK_CATEGORY;
+        if (!isPassable()) {
+            def.filter.categoryBits |= FilterValues.NON_PASSABLE_BLOCK_CATEGORY;
+        }
+        if (!material.transparent()) {
+            def.filter.categoryBits |= FilterValues.NON_TRANSPARENT_BLOCK_CATEGORY;
+        }
+
+        this.body.createFixture(def);
+        shape.dispose();
+    }
+
 }
