@@ -21,8 +21,10 @@ package io.github.seggan.voksel;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Frustum;
+import io.github.seggan.voksel.screens.MainScreen;
 import io.github.seggan.voksel.util.MagicValues;
 import io.github.seggan.voksel.util.Position;
+import io.github.seggan.voksel.util.TextureUtils;
 import io.github.seggan.voksel.world.block.Block;
 import io.github.seggan.voksel.world.block.Material;
 import io.github.seggan.voksel.world.chunk.Chunk;
@@ -80,7 +82,7 @@ public final class Renderer {
         }
     }
 
-    void dispose() {
+    public void dispose() {
         clearCache();
     }
 

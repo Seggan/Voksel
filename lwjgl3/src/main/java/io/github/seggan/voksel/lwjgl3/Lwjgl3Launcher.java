@@ -20,7 +20,7 @@ package io.github.seggan.voksel.lwjgl3;
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
-import io.github.seggan.voksel.BlockyWorld;
+import io.github.seggan.voksel.Voksel;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -34,7 +34,7 @@ public class Lwjgl3Launcher {
 		PrintStream out = new PrintStream("log.txt");
 		//System.setOut(out);
 		//System.setErr(out);
-        new Lwjgl3Application(new BlockyWorld(), getDefaultConfiguration());
+        new Lwjgl3Application(new Voksel(), getDefaultConfiguration());
     }
 
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {

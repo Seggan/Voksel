@@ -27,7 +27,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.utils.Disposable;
 import com.google.common.base.Objects;
-import io.github.seggan.voksel.MainScreen;
+import io.github.seggan.voksel.screens.MainScreen;
 import io.github.seggan.voksel.util.FilterValues;
 import io.github.seggan.voksel.util.MagicValues;
 import io.github.seggan.voksel.util.NumberUtil;

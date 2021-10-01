@@ -118,4 +118,13 @@ task packageJar(type: proguard.gradle.ProGuardTask) {
     keep "class org.lwjgl.** { *; }"
 }
 
+task publish() {
+    group "package"
+    dependsOn packageJar
+
+    doLast {
+        println "cmd /c butler push $obf Seggan/Voksel:win-linux-mac-dev --userversion $version".execute().text
+    }
+}
+
 tasks.run.workingDir = rootDir

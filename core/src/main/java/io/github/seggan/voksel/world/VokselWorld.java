@@ -29,7 +29,7 @@ import io.github.seggan.voksel.world.block.Block;
 import io.github.seggan.voksel.world.block.Material;
 import io.github.seggan.voksel.world.chunk.Chunk;
 import io.github.seggan.voksel.world.entity.Entity;
-import io.github.seggan.voksel.world.entity.Player;
+import io.github.seggan.voksel.world.entity.player.Player;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;

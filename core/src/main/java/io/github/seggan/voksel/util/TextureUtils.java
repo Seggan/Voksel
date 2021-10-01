@@ -16,12 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.seggan.voksel;
+package io.github.seggan.voksel.util;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import io.github.seggan.voksel.util.MagicValues;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
@@ -29,11 +28,11 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class TextureUtils {
 
-    public static Texture load(@NonNull String path, int widthMultiplier, int heightMultiplier) {
+    public static Texture load(@NonNull String path, double widthMultiplier, double heightMultiplier) {
         Pixmap orig = new Pixmap(Gdx.files.internal(path));
         Pixmap newPix = new Pixmap(
-            MagicValues.WORLD_SCREEN_RATIO * widthMultiplier,
-            MagicValues.WORLD_SCREEN_RATIO * heightMultiplier,
+            (int) (MagicValues.WORLD_SCREEN_RATIO * widthMultiplier),
+            (int) (MagicValues.WORLD_SCREEN_RATIO * heightMultiplier),
             orig.getFormat()
         );
         newPix.drawPixmap(orig, 0, 0, orig.getWidth(), orig.getHeight(), 0, 0, newPix.getWidth(), newPix.getHeight());

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.seggan.voksel;
+package io.github.seggan.voksel.screens;
 
 import box2dLight.PointLight;
 import box2dLight.RayHandler;
@@ -36,15 +36,18 @@ import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import io.github.seggan.voksel.Renderer;
+import io.github.seggan.voksel.Voksel;
 import io.github.seggan.voksel.util.FilterValues;
 import io.github.seggan.voksel.util.MagicValues;
 import io.github.seggan.voksel.util.NumberUtil;
 import io.github.seggan.voksel.util.Position;
+import io.github.seggan.voksel.util.TextureUtils;
 import io.github.seggan.voksel.world.VokselWorld;
 import io.github.seggan.voksel.world.block.Block;
 import io.github.seggan.voksel.world.block.Material;
 import io.github.seggan.voksel.world.chunk.Chunk;
-import io.github.seggan.voksel.world.entity.Player;
+import io.github.seggan.voksel.world.entity.player.Player;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -66,6 +69,7 @@ public class MainScreen implements Screen {
     private final Texture playerTex;
     private final Texture selector;
     private final BitmapFont font = new BitmapFont();
+    private final Voksel game;
 
     private float delta = 0;
     private float stepDelta = 0;
@@ -73,7 +77,10 @@ public class MainScreen implements Screen {
     private final RayHandler rayHandler;
     private final PointLight sun;
 
-    MainScreen() {
+    private InventoryScreen inventoryScreen;
+
+    public MainScreen(@NonNull Voksel game) {
+        this.game = game;
         inst = this;
 
         batch = new SpriteBatch();
@@ -121,6 +128,12 @@ public class MainScreen implements Screen {
     public void render(float delta) {
         ScreenUtils.clear(new Color(0x91faeeff));
 
+        Vector2 playerPos = player.body().getPosition();
+        Vector2 pos = NumberUtil.bodyToScreen(player);
+
+        camera.position.set(pos.x, pos.y, 0);
+        camera.update();
+
         Matrix4 scaledMatrix = new Matrix4(camera.combined);
         scaledMatrix.scale(MagicValues.WORLD_SCREEN_RATIO, MagicValues.WORLD_SCREEN_RATIO, 0);
         if (MagicValues.DEBUG) {
@@ -132,9 +145,6 @@ public class MainScreen implements Screen {
         int mX = (int) Math.floor(unprojected.x / MagicValues.WORLD_SCREEN_RATIO);
         int mY = (int) (unprojected.y / MagicValues.WORLD_SCREEN_RATIO);
         Block hovering = world.blockAt(mX, mY);
-
-        Vector2 playerPos = player.body().getPosition();
-        Vector2 pos = NumberUtil.bodyToScreen(player);
 
         batch.setProjectionMatrix(camera.combined);
 
@@ -163,9 +173,6 @@ public class MainScreen implements Screen {
         if (Gdx.input.isKeyPressed(Input.Keys.A) && v.x > -Player.MAX_SPEED) {
             player.body().applyLinearImpulse(-10, 0, playerPos.x, playerPos.y, true);
         }
-
-        camera.position.set(pos.x, pos.y, 0);
-        camera.update();
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
             MagicValues.DEBUG = !MagicValues.DEBUG;
@@ -201,6 +208,11 @@ public class MainScreen implements Screen {
                     hovering.material(Material.LIGHT);
                 }
             }
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.I)) {
+            inventoryScreen = new InventoryScreen(this);
+            this.game.setScreen(inventoryScreen);
         }
 
         sun.setPosition(playerPos.x, Math.max(playerPos.y, MagicValues.SEA_LEVEL) + 20);
@@ -240,6 +252,7 @@ public class MainScreen implements Screen {
         renderer.dispose();
         batch.dispose();
         rayHandler.dispose();
+        if (inventoryScreen != null) inventoryScreen.dispose();
     }
 
     private void updateChunks() {

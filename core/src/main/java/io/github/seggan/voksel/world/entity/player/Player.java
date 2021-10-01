@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.seggan.voksel.world.entity;
+package io.github.seggan.voksel.world.entity.player;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
@@ -26,6 +26,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 import io.github.seggan.voksel.util.BodyEditorLoader;
 import io.github.seggan.voksel.util.FilterValues;
+import io.github.seggan.voksel.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import lombok.NonNull;

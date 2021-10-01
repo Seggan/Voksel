@@ -20,13 +20,15 @@ package io.github.seggan.voksel;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.physics.box2d.Box2D;
+import io.github.seggan.voksel.screens.MainScreen;
+import io.github.seggan.voksel.world.entity.player.inventory.InventorySlot;
 
 import lombok.Getter;
 
 /**
  * {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms.
  */
-public class BlockyWorld extends Game {
+public class Voksel extends Game {
 
     @Getter
     private static MainScreen screen;
@@ -34,12 +36,13 @@ public class BlockyWorld extends Game {
     @Override
     public void create() {
         Box2D.init();
-        screen = new MainScreen();
+        screen = new MainScreen(this);
         setScreen(screen);
     }
 
     @Override
     public void dispose() {
         screen.dispose();
+        InventorySlot.TEXTURE.dispose();
     }
 }

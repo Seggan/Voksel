@@ -1,5 +1,8 @@
 # Changelog
 
+# 10/1/21
+(5:54 PM) I somehow fixed the jittering of the player... (I updated the camera *before* rendering)
+
 ### 9/30/21
 (12:24 AM) Implemented lighting and a light block
 
