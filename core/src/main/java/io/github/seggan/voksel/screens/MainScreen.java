@@ -249,7 +249,6 @@ public class MainScreen implements Screen {
 
     @Override
     public void dispose() {
-        renderer.dispose();
         batch.dispose();
         rayHandler.dispose();
         if (inventoryScreen != null) inventoryScreen.dispose();

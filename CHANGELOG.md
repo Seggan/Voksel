@@ -1,5 +1,8 @@
 # Changelog
 
+# 10/2/21
+(9:44 AM) Texture stitching
+
 # 10/1/21
 (5:54 PM) I somehow fixed the jittering of the player... (I updated the camera *before* rendering)
 

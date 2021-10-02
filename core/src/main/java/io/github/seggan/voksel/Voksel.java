@@ -36,6 +36,8 @@ public class Voksel extends Game {
     @Override
     public void create() {
         Box2D.init();
+        Renderer.init();
+
         screen = new MainScreen(this);
         setScreen(screen);
     }
@@ -44,5 +46,6 @@ public class Voksel extends Game {
     public void dispose() {
         screen.dispose();
         InventorySlot.TEXTURE.dispose();
+        Renderer.dispose();
     }
 }
